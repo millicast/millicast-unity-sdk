@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5cf895c2372bf7f4ab2b58b86d3a7761, type: 3}
+  m_Name: Video Configuration
+  m_EditorClassIdentifier: 
+  codecType: 0
+  resolution: 0
+  qualitySettings:
+    maxBitrate: 6000
+    minBitrate: 2500
+    framerateOption: 0
+    scaleDownOption: 1

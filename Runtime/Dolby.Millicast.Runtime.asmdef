@@ -1,0 +1,17 @@
+{
+    "name": "Dolby.Millicast.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "Unity.WebRTC",
+        "endel.nativewebsocket"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

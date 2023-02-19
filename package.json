@@ -1,0 +1,32 @@
+{
+  "name": "com.dolby.millicast",
+  "version": "1.0.0",
+  "displayName": "Millicast",
+  "description": "A Unity package to publish and view Millicast streams.",
+  "unity": "2021.3",
+  "unityRelease": "0b5",
+  "documentationUrl": "https://docs.dolby.io",
+  "changelogUrl": "https://example.com/changelog.html",
+  "licensesUrl": "https://example.com/licensing.html",
+  "dependencies": {
+    "com.unity.webrtc": "3.0.0-pre.3",
+    "com.unity.nuget.newtonsoft-json": "3.0.2",
+    "com.unity.inputsystem": "1.0.2"
+  },
+  "keywords": [
+    "millicast",
+    "streaming",
+    "realtime"
+  ],
+  "samples": [{
+    "displayName": "Reference Sample Scenes",
+    "description": "Millicast samples",
+    "path": "Samples~"
+  }],
+  "author": {
+    "name": "Dolby",
+    "email": "yousif.khalid@dolby.com",
+    "url": "https://dolby.io/"
+  },
+  "hideInEditor": false
+}

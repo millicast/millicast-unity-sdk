@@ -1,0 +1,5 @@
+var searchData=
+[
+  ['removerenderaudiosource_0',['RemoveRenderAudioSource',['../class_dolby_1_1_millicast_1_1_mc_publisher.html#afcbc59f8e542c1c1dc552d578c99547b',1,'Dolby.Millicast.McPublisher.RemoveRenderAudioSource()'],['../class_dolby_1_1_millicast_1_1_mc_subscriber.html#a10db3bb374d164bb3708880fa996b616',1,'Dolby.Millicast.McSubscriber.RemoveRenderAudioSource()']]],
+  ['removevideorendertarget_1',['RemoveVideoRenderTarget',['../class_dolby_1_1_millicast_1_1_mc_publisher.html#a6c9e0320e83b058cf2cf9ca1f4156c49',1,'Dolby.Millicast.McPublisher.RemoveVideoRenderTarget(Material material)'],['../class_dolby_1_1_millicast_1_1_mc_publisher.html#a4c5300ea07a8f7222310d685abf1623f',1,'Dolby.Millicast.McPublisher.RemoveVideoRenderTarget(RawImage image)'],['../class_dolby_1_1_millicast_1_1_mc_subscriber.html#a308735fc7a35f22622e4e7948259b296',1,'Dolby.Millicast.McSubscriber.RemoveVideoRenderTarget(Material material)'],['../class_dolby_1_1_millicast_1_1_mc_subscriber.html#a6638689c6729d80dceaeb22d0dcc38f8',1,'Dolby.Millicast.McSubscriber.RemoveVideoRenderTarget(RawImage image)']]]
+];
