@@ -124,15 +124,8 @@ namespace Dolby.Millicast
         }
 
         [SerializeField]
+        [Tooltip("Publish as soon as the script start")]
         private bool _publishOnStart = false;
-        /// <summary>
-        /// Publish as soon as the script starts.
-        /// </summary>
-        public bool publishOnStart
-        {
-            get => this._publishOnStart;
-            set { this._publishOnStart = value; }
-        }
 
         /// <summary>
         /// Munge the local sdp for publishing.
@@ -256,7 +249,7 @@ namespace Dolby.Millicast
         /// Create the Peer Connection given the ice servers.
         /// </summary>
         /// <param name="iceServers"></param>
-        /// <exception cref="PublishingException"></exception>
+        /// <exception cref="Exception"></exception>
         private void EstablishPeerConnection(ref RTCIceServer[] iceServers)
         {
             _rtcConfiguration = new RTCConfiguration();
@@ -382,7 +375,7 @@ namespace Dolby.Millicast
         /// <summary>
         /// Returns the url link for the preview video of the published content 
         /// </summary>
-        public string GetPreviewURL()
+        private string GetPreviewURL()
         {
             string url = PREVIEW_URL.Replace("{{accountId}}", credentials.accountId);
             url = url.Replace("{{streamName}}", streamName);
@@ -587,7 +580,7 @@ namespace Dolby.Millicast
 
         void Start()
         {
-            if (publishOnStart)
+            if (_publishOnStart)
             {
                 if (!_useAudioListenerAsSource && _audioSource == null && _videoSource == null)
                 {

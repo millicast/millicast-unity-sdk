@@ -62,12 +62,8 @@ namespace Dolby.Millicast
     /// Subscribe as soon as the script starts.
     /// </summary>
     [SerializeField]
+    [Tooltip("Subscribe as soon as the script starts")]
     private bool _subscribeOnStart = false;
-    public bool subscribeOnStart
-    {
-      get => this._subscribeOnStart;
-      set { this._subscribeOnStart = value; }
-    }
 
     /// <summary>
     /// If the current object contains a mesh renderer,
@@ -77,15 +73,6 @@ namespace Dolby.Millicast
     [SerializeField]
     [Tooltip("Enabling will render incoming stream onto mesh renderer's material, if it exists.")]
     private bool _updateMeshRendererMaterial = false;
-    public bool updateMeshRendererMaterial
-    {
-      get => this._updateMeshRendererMaterial;
-      set
-      {
-        this._updateMeshRendererMaterial = value;
-        UpdateMeshRendererMaterial();
-      }
-    }
 
     [SerializeField]
     [Tooltip("Add your Materials here to rendering incoming video streams")]
@@ -308,7 +295,7 @@ namespace Dolby.Millicast
 
     void Start()
     {
-      if (subscribeOnStart)
+      if (_subscribeOnStart)
       {
         Subscribe();
       }
@@ -391,7 +378,7 @@ namespace Dolby.Millicast
     /// This will render incoming streams onto the mesh renderer
     /// of this object, if it exists. 
     /// </summary>
-    private void UpdateMeshRendererMaterial()
+    public void UpdateMeshRendererMaterial()
     {
       if (_updateMeshRendererMaterial && !string.IsNullOrEmpty(streamName))
       {
