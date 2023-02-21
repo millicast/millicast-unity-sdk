@@ -220,7 +220,7 @@ namespace Dolby.Millicast
     /// Create the Peer Connection given the ice servers.
     /// </summary>
     /// <param name="iceServers"></param>
-    /// <exception cref="PublishingException"></exception>
+    /// <exception cref="Exception"></exception>
     private void EstablishPeerConnection(ref RTCIceServer[] iceServers)
     {
       _rtcConfiguration = new RTCConfiguration();
