@@ -266,8 +266,13 @@ namespace Dolby.Millicast
       bool checkForStreamCoroutineCalled = false;
       _httpAuthenticator.OnError += (msg) =>
       {
-        Debug.Log("[HTTPAuthenticator] " + msg + "\nWaiting for incoming Stream...");
+        if (msg.Contains("Unauthorized")) {
+          Debug.Log("[HTTPAuthenticator] " + msg);
+        }else {
+          Debug.Log("[HTTPAuthenticator] " + msg + "\nWaiting for incoming Stream...");
+        }
         OnConnectionError?.Invoke(this, msg);
+        if (msg.Contains("Unauthorized")) return;
         checkForStream = true;
         if (checkForStreamCoroutineCalled) return;
         checkForStreamCoroutineCalled = true;
