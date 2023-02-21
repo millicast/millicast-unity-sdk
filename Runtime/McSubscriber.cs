@@ -354,6 +354,19 @@ namespace Dolby.Millicast
              !string.IsNullOrEmpty(credentials.accountId);
 
     }
+     private string GetCredentialsErrorMessage(Credentials credentials)
+      {
+          string message = "";
+          if(string.IsNullOrEmpty(streamName))
+              return  "Stream Name cannot be Empty.Please add Stream Name from Inspector";
+          
+            if(string.IsNullOrEmpty(credentials.accountId))
+              message = "Stream Account ID";
+          if(string.IsNullOrEmpty(credentials.url))
+              message += string.IsNullOrEmpty(message) ? "Subscriber URL" : ", Subscriber URL";
+          
+          return message + " can't be Empty. Please configure in Credentials Scriptable Object";
+      }
 
     private void AddRenderTargets()
     {
@@ -407,13 +420,13 @@ namespace Dolby.Millicast
       Reset();
 
       // Prioritise UI credentials
-      if (CheckValidCredentials(_credentials))
+      if (CheckValidCredentials(_credentials) || credentials == null)
       {
         credentials = new Credentials(_credentials, true);
       }
-      else if (!CheckValidCredentials(credentials))
+      if (!CheckValidCredentials(credentials))
       {
-        throw new Exception("You need to provide valid credentials and stream name.");
+        throw new Exception(GetCredentialsErrorMessage(credentials));
       }
       AddRenderTargets();
       UpdateMeshRendererMaterial();

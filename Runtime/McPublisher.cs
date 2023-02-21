@@ -348,6 +348,20 @@ namespace Dolby.Millicast
                    !string.IsNullOrEmpty(credentials.token) &&
                    !string.IsNullOrEmpty(credentials.accountId);
         }
+        private string GetCredentialsErrorMessage(Credentials credentials)
+        {
+            string message = "";
+            if(string.IsNullOrEmpty(streamName))
+                return  "Stream Name cannot be Empty.Please add Stream Name from Inspector";
+             if(string.IsNullOrEmpty(credentials.accountId))
+                message = "Stream Account ID";
+            if(string.IsNullOrEmpty(credentials.url))
+                message += string.IsNullOrEmpty(message) ? "Publish URL" : ", Publish URL";
+            if(string.IsNullOrEmpty(credentials.token))
+                message += string.IsNullOrEmpty(message) ? "Publish token" : ", Publish token";
+           
+            return message + " can't be Empty. Please configure in Credentials Scriptable Object";
+        }
 
 
         /// <summary>
@@ -622,17 +636,13 @@ namespace Dolby.Millicast
 
             // Prioritise UI creedntials
 
-            if (_credentials == null && credentials == null) {
-                throw new Exception("Credentials cannot be null");
-            }
-
-            if (CheckValidCredentials(_credentials))
+            if (CheckValidCredentials(_credentials) || credentials == null)
             {
                 credentials = new Credentials(_credentials, false);
             }
-            else if (!CheckValidCredentials(credentials))
+            if (!CheckValidCredentials(credentials))
             {
-                throw new Exception("You need to provide valid credentials and stream name.");
+                throw new Exception(GetCredentialsErrorMessage(credentials));
             }
 
             if (!isUpdateStarted)
