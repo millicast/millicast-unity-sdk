@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEditor;
 namespace Dolby.Millicast.Samples
 {
-
+#if UNITY_EDITOR
     [CustomEditor(typeof(VirtualStreamPlayer))]
     public class VirtualStreamPlayerEditor : Editor
     {
@@ -55,4 +55,5 @@ namespace Dolby.Millicast.Samples
                 streamPlayer.SetResolution(width, height, scaleFactor);
         }
     }
+#endif
 }
