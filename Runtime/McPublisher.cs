@@ -322,6 +322,7 @@ namespace Dolby.Millicast
             _pc = null;
             _signaling?.Disconnect();
             _rtpSenders.Clear();
+            Destroy(gameObject.GetComponent<AudioSender>());
         }
 
         private bool CheckValidCredentials(McCredentials credentials)
@@ -474,20 +475,6 @@ namespace Dolby.Millicast
         }
 
         /// <summary>
-        ///  This method is called on the audio thread. 
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="channels"></param>
-        private void OnAudioFilterRead(float[] data, int channels)
-        {
-            const int sampleRate = 48000;
-            if (_useAudioListenerAsSource)
-            {
-                _audioTrack?.SetData(data, channels, sampleRate);
-            }
-        }
-
-        /// <summary>
         /// Set the current AudioListener in the scene as an audio input to publishing. 
         /// Resets previously set AudioSource through <see cref="SetAudioSource"/>.
         /// Throws an Exception if the game object does not contain an AudioListener.
@@ -501,6 +488,7 @@ namespace Dolby.Millicast
             }
 
             _audioTrack = new AudioStreamTrack();
+            gameObject.AddComponent<AudioSender>().SetAudioTrack(_audioTrack);
             _useAudioListenerAsSource = true;
             _renderer.SetAudioTrack(_audioTrack);
 
