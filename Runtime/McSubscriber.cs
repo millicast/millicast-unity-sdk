@@ -225,7 +225,7 @@ namespace Dolby.Millicast
         {
             _rtcConfiguration = new RTCConfiguration();
             _rtcConfiguration.iceServers = iceServers;
-            _pc = new PeerConnection();
+            _pc = gameObject.AddComponent<PeerConnection>();
             _pc.OnError += (_, msg) => { Debug.Log("[PeerConnection] " + msg); };
             _pc.OnLocalSdpReady += (sdp) => StartCoroutine(SendLocalSdp(sdp));
             _pc.OnRemoteSdpMunge += MungeRemoteSdp;
@@ -329,6 +329,8 @@ namespace Dolby.Millicast
             _localSdpSent = false;
             _signaling = null;
             _pc?.Disconnect();
+
+            if (_pc) Destroy(_pc);
             _pc = null;
         }
 
@@ -433,11 +435,6 @@ namespace Dolby.Millicast
             AddRenderTargets();
             UpdateMeshRendererMaterial();
 
-            if (!isUpdateStarted)
-            {
-                isUpdateStarted = true;
-                StartCoroutine(WebRTC.Update());
-            }
             // Http Authentication
             _httpAuthenticator.credentials = credentials;
             StartCoroutine(_httpAuthenticator.Connect(streamName));

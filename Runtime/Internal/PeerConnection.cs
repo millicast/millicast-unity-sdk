@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Linq;
 using UnityEngine;
-
 using Unity.WebRTC;
 using Newtonsoft.Json;
 
@@ -129,9 +128,14 @@ namespace Dolby.Millicast
     }
   }
 
-  internal class PeerConnection
+  internal class PeerConnection : MonoBehaviour
   {
 
+
+    void Awake()
+    {
+      StartCoroutine(WebRTC.Update());
+    }
 
     // This is a specific coroutine runner, to prevent us
     // from instantiating PeerConnection as a component
@@ -312,7 +316,7 @@ namespace Dolby.Millicast
           yield break;
         }
 
-        yield return OnCoroutineRunRequested.Invoke(OnCreateOfferSuccess(op.Desc));
+        yield return OnCreateOfferSuccess(op.Desc);
       }
       else
       {
@@ -322,7 +326,7 @@ namespace Dolby.Millicast
 
     private void OnNegotiationNeeded()
     {
-      OnCoroutineRunRequested?.Invoke(PeerNegotiationNeeded());
+      StartCoroutine(PeerNegotiationNeeded());
     }
 
     private RTCSessionDescription ParseAnswer(ServiceResponseData payload)
@@ -350,7 +354,7 @@ namespace Dolby.Millicast
         switch (e)
         {
           case ISignaling.Event.RESPONSE:
-            OnCoroutineRunRequested.Invoke(OnRemoteAnswer(ParseAnswer(data)));
+            StartCoroutine(OnRemoteAnswer(ParseAnswer(data)));
             break;
         }
       };
