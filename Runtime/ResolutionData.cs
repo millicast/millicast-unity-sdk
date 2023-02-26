@@ -4,9 +4,9 @@ using UnityEngine;
 using System.Collections.Generic;
 namespace Dolby.Millicast
 {
-  /// <summary>
-  /// An internal class  to get the Resoution Ids mapped to the respective screen sizes. Can be used to populate the resolution Ids as a dropdown and fetch screen size based on selected Resolution
-  /// </summary>
+    /// <summary>
+    /// A class  to get the Resolution Ids mapped to the respective screen sizes. Can be used to populate the resolution Ids as a dropdown and fetch screen size based on selected Resolution
+    /// </summary>
     public class ResolutionData
     {
         public class InternalMap

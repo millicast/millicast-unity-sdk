@@ -124,15 +124,8 @@ namespace Dolby.Millicast
         }
 
         [SerializeField]
+        [Tooltip("Publish as soon as the script start")]
         private bool _publishOnStart = false;
-        /// <summary>
-        /// Publish as soon as the script starts.
-        /// </summary>
-        public bool publishOnStart
-        {
-            get => this._publishOnStart;
-            set { this._publishOnStart = value; }
-        }
 
         /// <summary>
         /// Munge the local sdp for publishing.
@@ -256,7 +249,7 @@ namespace Dolby.Millicast
         /// Create the Peer Connection given the ice servers.
         /// </summary>
         /// <param name="iceServers"></param>
-        /// <exception cref="PublishingException"></exception>
+        /// <exception cref="Exception"></exception>
         private void EstablishPeerConnection(ref RTCIceServer[] iceServers)
         {
             _rtcConfiguration = new RTCConfiguration();
@@ -329,6 +322,7 @@ namespace Dolby.Millicast
             _pc = null;
             _signaling?.Disconnect();
             _rtpSenders.Clear();
+            Destroy(gameObject.GetComponent<AudioSender>());
         }
 
         private bool CheckValidCredentials(McCredentials credentials)
@@ -347,6 +341,20 @@ namespace Dolby.Millicast
                    !string.IsNullOrEmpty(credentials.url) &&
                    !string.IsNullOrEmpty(credentials.token) &&
                    !string.IsNullOrEmpty(credentials.accountId);
+        }
+        private string GetCredentialsErrorMessage(Credentials credentials)
+        {
+            string message = "";
+            if(string.IsNullOrEmpty(streamName))
+                return  "Stream Name cannot be Empty.Please add Stream Name from Inspector";
+             if(string.IsNullOrEmpty(credentials.accountId))
+                message = "Stream Account ID";
+            if(string.IsNullOrEmpty(credentials.url))
+                message += string.IsNullOrEmpty(message) ? "Publish URL" : ", Publish URL";
+            if(string.IsNullOrEmpty(credentials.token))
+                message += string.IsNullOrEmpty(message) ? "Publish token" : ", Publish token";
+           
+            return message + " can't be Empty. Please configure in Credentials Scriptable Object";
         }
 
 
@@ -368,7 +376,7 @@ namespace Dolby.Millicast
         /// <summary>
         /// Returns the url link for the preview video of the published content 
         /// </summary>
-        public string GetPreviewURL()
+        private string GetPreviewURL()
         {
             string url = PREVIEW_URL.Replace("{{accountId}}", credentials.accountId);
             url = url.Replace("{{streamName}}", streamName);
@@ -467,20 +475,6 @@ namespace Dolby.Millicast
         }
 
         /// <summary>
-        ///  This method is called on the audio thread. 
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="channels"></param>
-        private void OnAudioFilterRead(float[] data, int channels)
-        {
-            const int sampleRate = 48000;
-            if (_useAudioListenerAsSource)
-            {
-                _audioTrack?.SetData(data, channels, sampleRate);
-            }
-        }
-
-        /// <summary>
         /// Set the current AudioListener in the scene as an audio input to publishing. 
         /// Resets previously set AudioSource through <see cref="SetAudioSource"/>.
         /// Throws an Exception if the game object does not contain an AudioListener.
@@ -494,6 +488,7 @@ namespace Dolby.Millicast
             }
 
             _audioTrack = new AudioStreamTrack();
+            gameObject.AddComponent<AudioSender>().SetAudioTrack(_audioTrack);
             _useAudioListenerAsSource = true;
             _renderer.SetAudioTrack(_audioTrack);
 
@@ -573,7 +568,7 @@ namespace Dolby.Millicast
 
         void Start()
         {
-            if (publishOnStart)
+            if (_publishOnStart)
             {
                 if (!_useAudioListenerAsSource && _audioSource == null && _videoSource == null)
                 {
@@ -622,17 +617,13 @@ namespace Dolby.Millicast
 
             // Prioritise UI creedntials
 
-            if (_credentials == null && credentials == null) {
-                throw new Exception("Credentials cannot be null");
-            }
-
-            if (CheckValidCredentials(_credentials))
+            if (CheckValidCredentials(_credentials) || credentials == null)
             {
                 credentials = new Credentials(_credentials, false);
             }
-            else if (!CheckValidCredentials(credentials))
+            if (!CheckValidCredentials(credentials))
             {
-                throw new Exception("You need to provide valid credentials and stream name.");
+                throw new Exception(GetCredentialsErrorMessage(credentials));
             }
 
             if (!isUpdateStarted)
