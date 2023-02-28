@@ -484,8 +484,6 @@ namespace Dolby.Millicast
             if (targetTexture != null)
             {
                 rt = targetTexture;
-                rt.width = _videoConfigData.pStreamSize.width;
-                rt.height = _videoConfigData.pStreamSize.height;
                 RenderTextureFormat supportFormat = WebRTC.GetSupportedRenderTextureFormat(SystemInfo.graphicsDeviceType);
                 GraphicsFormat graphicsFormat = GraphicsFormatUtility.GetGraphicsFormat(supportFormat, RenderTextureReadWrite.Default);
                 GraphicsFormat compatibleFormat = SystemInfo.GetCompatibleFormat(graphicsFormat, FormatUsage.Render);
