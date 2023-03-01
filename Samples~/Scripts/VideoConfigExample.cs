@@ -99,7 +99,6 @@ public class VideoConfigExample : MonoBehaviour
         if (cam == null || audioSource == null)
         {
             throw new Exception("Must create Camera and AudioSource");
-            return;
         }
 
         if (audioSource.clip != null)
