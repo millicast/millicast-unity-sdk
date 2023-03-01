@@ -98,7 +98,7 @@ public class VideoConfigExample : MonoBehaviour
     {
         if (cam == null || audioSource == null)
         {
-            Debug.Log("Must create Camera and AudioSource");
+            throw new Exception("Must create Camera and AudioSource");
             return;
         }
 

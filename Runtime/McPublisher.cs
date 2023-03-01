@@ -22,6 +22,11 @@ namespace Dolby.Millicast
         public int height = 720;
 
     }
+    public enum VideoSourceType
+    {
+        Camera,
+        RenderTexture
+    }
 
     /// <summary>
     /// The Millicast publisher. This class allows its users to publish audio and video media
@@ -99,19 +104,19 @@ namespace Dolby.Millicast
 
         public Credentials credentials { get; set; } = null;
 
+        public VideoSourceType videoSourceType;
         /// <summary>
         /// Whether or not to use the audio listener as a source to publishing. This
         /// is a UI setting. If the game object does not contain an AudioListener, 
         /// the option will have no effect. 
         /// </summary>
         [Tooltip("Only use this if the object contains an AudioListener")]
-        [SerializeField]
-        private bool _useAudioListenerAsSource = false;
-
-        [SerializeField] private Camera _videoSourceCamera;
-        [SerializeField] private RenderTexture _videoSourceRenderTexture;
-        [Tooltip("Ignore if using AudioListener as Source")]
-        [SerializeField] private AudioSource _audioSource;
+        public bool _useAudioListenerAsSource = false;
+        [HideInInspector] public AudioSource _audioSource;
+        //visibility will be controller by the EditorScript=> MyEditorClass
+        [HideInInspector]public Camera _videoSourceCamera;
+         //visibility will be controller by the EditorScript=> MyEditorClass
+        [HideInInspector]public RenderTexture _videoSourceRenderTexture;
         private VideoConfig _videoConfig;
         private PublisherOptions _options = new PublisherOptions();
         /// <summary>
@@ -417,8 +422,7 @@ namespace Dolby.Millicast
                 _rtpSenders.Clear();
                 return;
             }
-
-
+            videoSourceType = VideoSourceType.Camera;
             _publishingCamera = CopyCamera(source);
 
             _videoTrack = _publishingCamera.CaptureStreamTrack(resolution.width, resolution.height);
@@ -460,12 +464,8 @@ namespace Dolby.Millicast
                 _rtpSenders.Clear();
                 return;
             }
-
-
-            if (source != null)
-            {
-                _videoTrack = CreateRenderTextureStreamTrack(source);
-            }
+            videoSourceType = VideoSourceType.RenderTexture;
+            _videoTrack = CreateRenderTextureStreamTrack(source);
 
             // We will also replace the old track if it exists
             foreach (var sender in _rtpSenders)
@@ -663,8 +663,9 @@ namespace Dolby.Millicast
             {
                 throw new Exception("Must provide audio source before publishing!");
             }
-            if (_videoSourceCamera == null && _videoSourceRenderTexture == null)
-                throw new Exception("Atlease one Video Source should be availble before publishing. Please assign Video Source Camera or Video Source Rendered Texture in Inpsector.");
+            if (_videoTrack == null && ((videoSourceType == VideoSourceType.Camera && _videoSourceCamera == null) || 
+                (videoSourceType == VideoSourceType.RenderTexture && _videoSourceRenderTexture == null)))
+                throw new Exception("Please assign Video Stream Source in Insector");
 
         }
 
@@ -687,16 +688,15 @@ namespace Dolby.Millicast
             Reset();
             CheckAudioVideoSource();
             videoConfigData?.ValidateResolution();
-            if (_videoSourceCamera != null)
+
+            if (videoSourceType == VideoSourceType.Camera && _videoSourceCamera != null)
             {
                 SetVideoSource(_videoSourceCamera);
             }
-            else if (_videoSourceRenderTexture != null)
+            else if (videoSourceType == VideoSourceType.RenderTexture && _videoSourceRenderTexture != null)
             {
                 SetVideoSource(_videoSourceRenderTexture);
             }
-
-
 
             // Preference for AudioListener first, unless AudioSource is set.
             if (_useAudioListenerAsSource)
