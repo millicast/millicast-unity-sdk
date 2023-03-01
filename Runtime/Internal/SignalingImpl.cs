@@ -191,8 +191,8 @@ namespace Dolby.Millicast
       string os_version = OSDetails.GetOSVersion(os_info);
       string plugin_version = Millicast.GetPackageVersion();
       string device_model = SystemInfo.deviceModel;
-      //<SDK Name>/<SDK version> (<OS>/<OS Version>; <extra info>;<Unity/version>)
-      var userAgent = $"UnitySDK/{plugin_version} ({os_name}/{os_version}; {device_model}; Unity/{Application.unityVersion})";
+      //<SDK Name>/<SDK version> (<OS>/<OS Version>; <extra info>)
+      var userAgent = $"UnitySDK/{plugin_version} ({os_name}/{os_version}; {device_model})";
       var websocketHeaders = new Dictionary<string, string>() { { "User-Agent", userAgent } };
 
       _websocket = new WebSocket(fullUrl, websocketHeaders);
