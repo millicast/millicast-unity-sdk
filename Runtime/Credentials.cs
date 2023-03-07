@@ -14,6 +14,8 @@ namespace Dolby.Millicast
 
         public Credentials(McCredentials credentials, bool isSubscriber)
         {
+            if(credentials == null)
+                throw new Exception("Credentials cannot be null. Please add reference to the Credentials Scriptable Object from Inspector");
             this.accountId = credentials.accountId;
             this.url = isSubscriber ? credentials.subscribe_url : credentials.publish_url;
             this.token = isSubscriber ? credentials.subscribe_token : credentials.publish_token;

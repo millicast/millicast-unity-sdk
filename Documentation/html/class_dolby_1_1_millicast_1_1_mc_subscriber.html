@@ -102,6 +102,14 @@ delegate void&#160;</td><td class="memItemRight" valign="bottom"><b>DelegateOnVi
 <tr class="memitem:aa9d26e33453ab0ed74e5926b23eae23b"><td class="memItemLeft" align="right" valign="top"><a id="aa9d26e33453ab0ed74e5926b23eae23b" name="aa9d26e33453ab0ed74e5926b23eae23b"></a>
 delegate void&#160;</td><td class="memItemRight" valign="bottom"><b>DelegateOnConnectionError</b> (<a class="el" href="class_dolby_1_1_millicast_1_1_mc_subscriber.html">McSubscriber</a> subscribe, string message)</td></tr>
 <tr class="separator:aa9d26e33453ab0ed74e5926b23eae23b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1746e21bda29fd56dc114a3a864207ff"><td class="memItemLeft" align="right" valign="top"><a id="a1746e21bda29fd56dc114a3a864207ff" name="a1746e21bda29fd56dc114a3a864207ff"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>UpdateMeshRendererMaterial</b> ()</td></tr>
+<tr class="memdesc:a1746e21bda29fd56dc114a3a864207ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">This will render incoming streams onto the mesh renderer of this object, if it exists. <br /></td></tr>
+<tr class="separator:a1746e21bda29fd56dc114a3a864207ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a55b3de25b3ba2cc6f9ca6832a11618e0"><td class="memItemLeft" align="right" valign="top"><a id="a55b3de25b3ba2cc6f9ca6832a11618e0" name="a55b3de25b3ba2cc6f9ca6832a11618e0"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>ClearRenderMaterials</b> ()</td></tr>
+<tr class="memdesc:a55b3de25b3ba2cc6f9ca6832a11618e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">This will clear all render material Targets for the incoming video stream. <br /></td></tr>
+<tr class="separator:a55b3de25b3ba2cc6f9ca6832a11618e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab5590220e700523764c0f8a797de9f94"><td class="memItemLeft" align="right" valign="top"><a id="ab5590220e700523764c0f8a797de9f94" name="ab5590220e700523764c0f8a797de9f94"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>Subscribe</b> ()</td></tr>
 <tr class="memdesc:ab5590220e700523764c0f8a797de9f94"><td class="mdescLeft">&#160;</td><td class="mdescRight">Subscribe to a stream. <br /></td></tr>
@@ -143,12 +151,6 @@ string&#160;</td><td class="memItemRight" valign="bottom"><b>streamName</b><code
 <tr class="memitem:abf0c20c2b5ff8a9e007fa5222699cd47"><td class="memItemLeft" align="right" valign="top"><a id="abf0c20c2b5ff8a9e007fa5222699cd47" name="abf0c20c2b5ff8a9e007fa5222699cd47"></a>
 <a class="el" href="class_dolby_1_1_millicast_1_1_credentials.html">Credentials</a>&#160;</td><td class="memItemRight" valign="bottom"><b>credentials</b> = null<code> [get, set]</code></td></tr>
 <tr class="separator:abf0c20c2b5ff8a9e007fa5222699cd47"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a469ae16ceee8142feb6d74f267fbbc69"><td class="memItemLeft" align="right" valign="top"><a id="a469ae16ceee8142feb6d74f267fbbc69" name="a469ae16ceee8142feb6d74f267fbbc69"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>subscribeOnStart</b><code> [get, set]</code></td></tr>
-<tr class="separator:a469ae16ceee8142feb6d74f267fbbc69"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a907d6ceeb3ee4fd042e26a77d507cffb"><td class="memItemLeft" align="right" valign="top"><a id="a907d6ceeb3ee4fd042e26a77d507cffb" name="a907d6ceeb3ee4fd042e26a77d507cffb"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>updateMeshRendererMaterial</b><code> [get, set]</code></td></tr>
-<tr class="separator:a907d6ceeb3ee4fd042e26a77d507cffb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1a7960bc75e6d52ca9cc2cc7072c9412"><td class="memItemLeft" align="right" valign="top"><a id="a1a7960bc75e6d52ca9cc2cc7072c9412" name="a1a7960bc75e6d52ca9cc2cc7072c9412"></a>
 List&lt; Material &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>renderMaterials</b><code> [get]</code></td></tr>
 <tr class="memdesc:a1a7960bc75e6d52ca9cc2cc7072c9412"><td class="mdescLeft">&#160;</td><td class="mdescRight">Manually add materials to render the incoming video stream on. is used when you want utilise the Unity Inspector UI. Use this only to render onto 3D objects. <br /></td></tr>

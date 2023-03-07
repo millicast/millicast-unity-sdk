@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['resolutiondata_0',['ResolutionData',['../class_dolby_1_1_millicast_1_1_resolution_data.html',1,'Dolby::Millicast']]]
+  ['publisheroptions_0',['PublisherOptions',['../class_dolby_1_1_millicast_1_1_publisher_options.html',1,'Dolby::Millicast']]]
 ];

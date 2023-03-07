@@ -48,7 +48,7 @@ If using URP, users needs to convert the materials to URP by selecting the `Mate
 * **H264**
 * **AV1**
 
-#### Sample Scenes
+### Sample Scenes
 * **360Subscribe**
     This scene demonstrates the usage of McSubscriber component which is used to subscribe to a video stream with the help of stream name and using a material as render target. The same material is used for all the meshes in the scene.
     McSubscriber component is attached to the Main Camera
@@ -63,3 +63,5 @@ If using URP, users needs to convert the materials to URP by selecting the `Mate
     This scene demonstrates the usage of MCSubscriber using the RawImage as streaming Target renderer. User can start/stop the video stream using the Subscribe/UnSubscribe buttons.
 
 
+### V1 Limitation
+Currently, using `AudioListener` as an audio source for publishing causes a drop in FPS. This is due to Unity WebRTC utilising `OnAudioFilterRead` to fetch audio frames from the `AudioListener`. We will be working on a fix for this in the next release. 

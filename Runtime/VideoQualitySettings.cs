@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace Dolby.Millicast
 {
     /// <summary>
-    /// This calss that is used in VideoConfig scriptable object to configure publish video settings regarding bitrate, framerate
+    /// This class that is used in VideoConfig scriptable object to configure publish video settings regarding bitrate, framerate
     /// and resolution scaling. Those settings can be modified in the scriptable object
     /// </summary>
     [System.Serializable]
