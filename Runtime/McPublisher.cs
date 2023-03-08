@@ -656,7 +656,7 @@ namespace Dolby.Millicast
         {
             if (!_useAudioListenerAsSource && _audioSource == null)
             {
-                throw new Exception("Must provide audio source before publishing!");
+                Debug.Log("Video being published without Audio..");
             }
             if (_videoTrack == null && ((videoSourceType == VideoSourceType.Camera && _videoSourceCamera == null) || 
                 (videoSourceType == VideoSourceType.RenderTexture && _videoSourceRenderTexture == null)))
