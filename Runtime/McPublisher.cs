@@ -411,39 +411,20 @@ namespace Dolby.Millicast
         /// <param name="resolution">The capturing resolution</param>
         public void SetVideoSource(Camera source, StreamSize resolution = null)
         {
-            if (resolution == null)
-            {
-                resolution = _videoConfigData.pStreamSize;
-            }
-
             // Remove all senders
             if (source == null)
             {
-                // We will also replace the old track if it exists
-                foreach (var sender in _rtpSenders)
-                {
-                    if (sender.Track is VideoStreamTrack)
-                    {
-                        _pc.RemoveTrack(sender.Track);
-                    }
-                }
-                _rtpSenders.Clear();
+                ClearSendersTrack();
                 return;
             }
             videoSourceType = VideoSourceType.Camera;
             _publishingCamera = CopyCamera(source);
-
+            if(resolution == null)
+                resolution = _videoConfigData.pStreamSize;
             _videoTrack = _publishingCamera.CaptureStreamTrack(resolution.width, resolution.height);
             _renderer.SetTexture(_publishingCamera.targetTexture);
-
             // We will also replace the old track if it exists
-            foreach (var sender in _rtpSenders)
-            {
-                if (sender.Track is VideoStreamTrack)
-                {
-                    sender.ReplaceTrack(_videoTrack);
-                }
-            }
+            RefreshVideoTrack();
         }
 
         /// <summary>
@@ -454,28 +435,32 @@ namespace Dolby.Millicast
         /// <param name="resolution">The capturing resolution</param>
         public void SetVideoSource(RenderTexture source, StreamSize resolution = null)
         {
-            if (resolution == null)
-            {
-                resolution = _videoConfigData.pStreamSize;
-            }
             // Remove all senders
             if (source == null)
             {
-                // We will also replace the old track if it exists
-                foreach (var sender in _rtpSenders)
-                {
-                    if (sender.Track is VideoStreamTrack)
-                    {
-                        _pc.RemoveTrack(sender.Track);
-                    }
-                }
-                _rtpSenders.Clear();
+                ClearSendersTrack();
                 return;
             }
             videoSourceType = VideoSourceType.RenderTexture;
             _videoTrack = CreateRenderTextureStreamTrack(source);
-
             // We will also replace the old track if it exists
+            RefreshVideoTrack();
+        }
+
+        private void ClearSendersTrack()
+        {
+            foreach (var sender in _rtpSenders)
+            {
+                if (sender.Track is VideoStreamTrack)
+                {
+                    _pc.RemoveTrack(sender.Track);
+                }
+            }
+            _rtpSenders.Clear();
+        }
+
+        private void RefreshVideoTrack()
+        {
             foreach (var sender in _rtpSenders)
             {
                 if (sender.Track is VideoStreamTrack)
@@ -484,7 +469,6 @@ namespace Dolby.Millicast
                 }
             }
         }
-
         protected VideoStreamTrack CreateRenderTextureStreamTrack(RenderTexture targetTexture)
         {
             RenderTexture rt = null;
