@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Unity.WebRTC;
 using Newtonsoft.Json;
-
+using UnityEngine.Experimental.Rendering;
 
 namespace Dolby.Millicast
 {
@@ -21,6 +21,11 @@ namespace Dolby.Millicast
         public int width = 1280;
         public int height = 720;
 
+    }
+    public enum VideoSourceType
+    {
+        Camera,
+        RenderTexture
     }
 
     /// <summary>
@@ -98,19 +103,20 @@ namespace Dolby.Millicast
 
 
         public Credentials credentials { get; set; } = null;
-        
+
+        public VideoSourceType videoSourceType;
         /// <summary>
         /// Whether or not to use the audio listener as a source to publishing. This
         /// is a UI setting. If the game object does not contain an AudioListener, 
         /// the option will have no effect. 
         /// </summary>
         [Tooltip("Only use this if the object contains an AudioListener")]
-        [SerializeField]
-        private bool _useAudioListenerAsSource = false;
-
-        [SerializeField] private Camera _videoSource;
-        [Tooltip("Ignore if using AudioListener as Source")]
-        [SerializeField] private AudioSource _audioSource;
+        public bool _useAudioListenerAsSource = false;
+        [HideInInspector] public AudioSource _audioSource;
+        //visibility will be controller by the EditorScript=> MyEditorClass
+        [HideInInspector]public Camera _videoSourceCamera;
+         //visibility will be controller by the EditorScript=> MyEditorClass
+        [HideInInspector]public RenderTexture _videoSourceRenderTexture;
         private VideoConfig _videoConfig;
         private PublisherOptions _options = new PublisherOptions();
         /// <summary>
@@ -262,7 +268,7 @@ namespace Dolby.Millicast
             _pc.OnConnected += (_) =>
             {
                 Debug.Log("[PeerConnection] established connection.");
-                Debug.Log("[Preview Link] "+GetPreviewURL());
+                Debug.Log("[Preview Link] " + GetPreviewURL());
                 isPublishing = true;
                 UpdatePeerConnectionParameters();
                 OnPublishing?.Invoke(this);
@@ -405,33 +411,56 @@ namespace Dolby.Millicast
         /// <param name="resolution">The capturing resolution</param>
         public void SetVideoSource(Camera source, StreamSize resolution = null)
         {
-            if (resolution == null)
-            {
-                resolution = _videoConfigData.pStreamSize;
-            }
-
             // Remove all senders
             if (source == null)
             {
-                // We will also replace the old track if it exists
-                foreach (var sender in _rtpSenders)
-                {
-                    if (sender.Track is VideoStreamTrack)
-                    {
-                        _pc.RemoveTrack(sender.Track);
-                    }
-                }
-                _rtpSenders.Clear();
+                ClearSendersTrack();
                 return;
             }
-
-            
+            videoSourceType = VideoSourceType.Camera;
             _publishingCamera = CopyCamera(source);
-
+            if(resolution == null)
+                resolution = _videoConfigData.pStreamSize;
             _videoTrack = _publishingCamera.CaptureStreamTrack(resolution.width, resolution.height);
             _renderer.SetTexture(_publishingCamera.targetTexture);
-
             // We will also replace the old track if it exists
+            RefreshVideoTrack();
+        }
+
+        /// <summary>
+        /// Set the video source for capture. Call with null as the source to remove
+        /// the currently set video source.
+        /// </summary>
+        /// <param name="source">The Target Render Texture source to capture from</param>
+        /// <param name="resolution">The capturing resolution</param>
+        public void SetVideoSource(RenderTexture source, StreamSize resolution = null)
+        {
+            // Remove all senders
+            if (source == null)
+            {
+                ClearSendersTrack();
+                return;
+            }
+            videoSourceType = VideoSourceType.RenderTexture;
+            _videoTrack = CreateRenderTextureStreamTrack(source);
+            // We will also replace the old track if it exists
+            RefreshVideoTrack();
+        }
+
+        private void ClearSendersTrack()
+        {
+            foreach (var sender in _rtpSenders)
+            {
+                if (sender.Track is VideoStreamTrack)
+                {
+                    _pc.RemoveTrack(sender.Track);
+                }
+            }
+            _rtpSenders.Clear();
+        }
+
+        private void RefreshVideoTrack()
+        {
             foreach (var sender in _rtpSenders)
             {
                 if (sender.Track is VideoStreamTrack)
@@ -439,6 +468,39 @@ namespace Dolby.Millicast
                     sender.ReplaceTrack(_videoTrack);
                 }
             }
+        }
+        protected VideoStreamTrack CreateRenderTextureStreamTrack(RenderTexture targetTexture)
+        {
+            RenderTexture rt = null;
+
+            if (targetTexture != null)
+            {
+                rt = targetTexture;
+                RenderTextureFormat supportFormat = WebRTC.GetSupportedRenderTextureFormat(SystemInfo.graphicsDeviceType);
+                GraphicsFormat graphicsFormat = GraphicsFormatUtility.GetGraphicsFormat(supportFormat, RenderTextureReadWrite.Default);
+                GraphicsFormat compatibleFormat = SystemInfo.GetCompatibleFormat(graphicsFormat, FormatUsage.Render);
+                GraphicsFormat format = graphicsFormat == compatibleFormat ? graphicsFormat : compatibleFormat;
+
+                if (rt.graphicsFormat != format)
+                {
+                    Debug.LogWarning(
+                        $"This color format:{rt.graphicsFormat} not support in unity.webrtc. Change to supported color format:{format}.");
+                    rt.Release();
+                    rt.graphicsFormat = format;
+                    rt.Create();
+                }
+            }
+            else
+            {
+                RenderTextureFormat format = WebRTC.GetSupportedRenderTextureFormat(SystemInfo.graphicsDeviceType);
+                rt = new RenderTexture(_videoConfigData.pStreamSize.width, _videoConfigData.pStreamSize.height, 0, format)
+                {
+                    antiAliasing = 1
+                };
+                rt.Create();
+            }
+            _renderer.SetTexture(rt);
+            return new VideoStreamTrack(rt);
         }
 
         /// <summary>
@@ -570,12 +632,19 @@ namespace Dolby.Millicast
         {
             if (_publishOnStart)
             {
-                if (!_useAudioListenerAsSource && _audioSource == null && _videoSource == null)
-                {
-                    throw new Exception("Must provide audio and/or video sources before publishing!");
-                }
                 Publish();
             }
+
+        }
+        private void CheckAudioVideoSource()
+        {
+            if (!_useAudioListenerAsSource && _audioSource == null)
+            {
+                Debug.Log("Video being published without Audio..");
+            }
+            if (_videoTrack == null && ((videoSourceType == VideoSourceType.Camera && _videoSourceCamera == null) || 
+                (videoSourceType == VideoSourceType.RenderTexture && _videoSourceRenderTexture == null)))
+                throw new Exception("Please assign Video Stream Source in Insector");
 
         }
 
@@ -593,17 +662,20 @@ namespace Dolby.Millicast
         /// </summary>
         public void Publish()
         {
-            
+
             // Reset the state before publishing
             Reset();
-            
+            CheckAudioVideoSource();
             videoConfigData?.ValidateResolution();
 
-            if (_videoSource != null) {
-              SetVideoSource(_videoSource);
+            if (videoSourceType == VideoSourceType.Camera && _videoSourceCamera != null)
+            {
+                SetVideoSource(_videoSourceCamera);
             }
-
-
+            else if (videoSourceType == VideoSourceType.RenderTexture && _videoSourceRenderTexture != null)
+            {
+                SetVideoSource(_videoSourceRenderTexture);
+            }
 
             // Preference for AudioListener first, unless AudioSource is set.
             if (_useAudioListenerAsSource)
