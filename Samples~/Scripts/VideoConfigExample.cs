@@ -96,9 +96,9 @@ public class VideoConfigExample : MonoBehaviour
 
     void Start()
     {
-        if (cam == null || audioSource == null)
+        if (cam == null && audioSource == null)
         {
-            throw new Exception("Must create Camera and AudioSource");
+            throw new Exception("Must create Camera or AudioSource");
         }
 
         if (audioSource.clip != null)
@@ -108,7 +108,8 @@ public class VideoConfigExample : MonoBehaviour
 
         _publisher = gameObject.AddComponent<McPublisher>();
         _publisher.credentials = new Credentials(_credentials, false);
-
+        if(cam == null)
+            _publisher.videoSourceType = VideoSourceType.None;
         _publisher.streamName = streamName;
 
         _publisher.options.dtx = true;

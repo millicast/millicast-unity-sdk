@@ -25,7 +25,8 @@ namespace Dolby.Millicast
     public enum VideoSourceType
     {
         Camera,
-        RenderTexture
+        RenderTexture,
+        None
     }
 
     /// <summary>
@@ -280,10 +281,21 @@ namespace Dolby.Millicast
 
             _pc.SetUp(_signaling, _rtcConfiguration);
             _rtpSenders.Clear();
-            foreach (var track in new MediaStreamTrack[] { _videoTrack, _audioTrack })
+            if(_videoTrack == null || videoSourceType == VideoSourceType.None)
             {
-                if (track != null)
-                    _rtpSenders.Add(_pc.AddTrack(track));
+                foreach (var track in new MediaStreamTrack[] { _audioTrack })
+                {
+                    if (track != null)
+                        _rtpSenders.Add(_pc.AddTrack(track));
+                }
+            }
+            else
+            {
+                 foreach (var track in new MediaStreamTrack[] { _videoTrack, _audioTrack })
+                {
+                    if (track != null)
+                        _rtpSenders.Add(_pc.AddTrack(track));
+                }
             }
 
             foreach (var transceiver in _pc.GetTransceivers())
@@ -433,14 +445,8 @@ namespace Dolby.Millicast
         /// </summary>
         /// <param name="source">The Target Render Texture source to capture from</param>
         /// <param name="resolution">The capturing resolution</param>
-        public void SetVideoSource(RenderTexture source, StreamSize resolution = null)
+        public void SetVideoSource(RenderTexture source)
         {
-            // Remove all senders
-            if (source == null)
-            {
-                ClearSendersTrack();
-                return;
-            }
             videoSourceType = VideoSourceType.RenderTexture;
             _videoTrack = CreateRenderTextureStreamTrack(source);
             // We will also replace the old track if it exists
