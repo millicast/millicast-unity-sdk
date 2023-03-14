@@ -44,6 +44,7 @@ namespace Dolby.Millicast
         private readonly List<RTCRtpSender> _rtpSenders = new List<RTCRtpSender>();
         private VideoStreamTrack _videoTrack;
         private Camera _publishingCamera = null;
+        private bool isSimulcast;
 
         private AudioStreamTrack _audioTrack;
 
@@ -101,9 +102,7 @@ namespace Dolby.Millicast
         [SerializeField] private VideoConfiguration _videoConfigData;
         public VideoConfiguration videoConfigData { get => _videoConfigData; }
 
-
         public Credentials credentials { get; set; } = null;
-
         public VideoSourceType videoSourceType;
         /// <summary>
         /// Whether or not to use the audio listener as a source to publishing. This
@@ -114,9 +113,9 @@ namespace Dolby.Millicast
         public bool _useAudioListenerAsSource = false;
         [HideInInspector] public AudioSource _audioSource;
         //visibility will be controller by the EditorScript=> MyEditorClass
-        [HideInInspector]public Camera _videoSourceCamera;
-         //visibility will be controller by the EditorScript=> MyEditorClass
-        [HideInInspector]public RenderTexture _videoSourceRenderTexture;
+        [HideInInspector] public Camera _videoSourceCamera;
+        //visibility will be controller by the EditorScript=> MyEditorClass
+        [HideInInspector] public RenderTexture _videoSourceRenderTexture;
         private VideoConfig _videoConfig;
         private PublisherOptions _options = new PublisherOptions();
         /// <summary>
@@ -251,6 +250,34 @@ namespace Dolby.Millicast
             return selectedCapabilities;
         }
 
+        private RTCRtpTransceiverInit SetSimulcast(ref RTCRtpTransceiverInit init)
+        {
+            init.direction = RTCRtpTransceiverDirection.SendOnly;
+            List<RTCRtpEncodingParameters> encodingList = new List<RTCRtpEncodingParameters>();
+            RTCRtpEncodingParameters parameterH = new RTCRtpEncodingParameters();
+            parameterH.maxBitrate = _videoConfigData.pSimulcastSettings.High.max_bitrate_bps;
+            // parameterH.scaleResolutionDownBy = (double) _videoConfigData.pSimulcastSettings.High.resolutionScaleDown;
+            parameterH.active = true;
+            // parameterH.rid = "0";
+
+            RTCRtpEncodingParameters parameterM = new RTCRtpEncodingParameters();
+            parameterM.maxBitrate = _videoConfigData.pSimulcastSettings.Medium.max_bitrate_bps;
+            //parameterM.scaleResolutionDownBy = (double) _videoConfigData.pSimulcastSettings.Medium.resolutionScaleDown;
+            parameterM.active = true;
+            //  parameterM.rid = "1";
+
+            RTCRtpEncodingParameters parameterL = new RTCRtpEncodingParameters();
+            parameterL.maxBitrate = _videoConfigData.pSimulcastSettings.Low.max_bitrate_bps;
+            //  parameterL.scaleResolutionDownBy = (double) _videoConfigData.pSimulcastSettings.Low.resolutionScaleDown;
+            parameterL.active = true;
+            // parameterL.rid = "2";
+            encodingList.Add(parameterH);
+            encodingList.Add(parameterM);
+            encodingList.Add(parameterL);
+            init.sendEncodings = encodingList.ToArray();
+            return init;
+        }
+
         /// <summary>
         /// Create the Peer Connection given the ice servers.
         /// </summary>
@@ -280,11 +307,26 @@ namespace Dolby.Millicast
 
             _pc.SetUp(_signaling, _rtcConfiguration);
             _rtpSenders.Clear();
-            foreach (var track in new MediaStreamTrack[] { _videoTrack, _audioTrack })
+
+            if (_videoTrack != null)
             {
-                if (track != null)
-                    _rtpSenders.Add(_pc.AddTrack(track));
+                if (isSimulcast)
+                {
+                    RTCRtpTransceiverInit init = new RTCRtpTransceiverInit();
+                    SetSimulcast(ref init);
+                    RTCRtpTransceiver trans = _pc.AddTransceiver(_videoTrack, init);
+                    if (trans != null)
+                        _rtpSenders.Add(trans.Sender);
+                    else
+                        Debug.LogError("Transceiver is null");
+                }
+                else
+                    _rtpSenders.Add(_pc.AddTrack(_videoTrack));
+
             }
+
+            if (_audioTrack != null)
+                _rtpSenders.Add(_pc.AddTrack(_audioTrack));
 
             foreach (var transceiver in _pc.GetTransceivers())
             {
@@ -351,15 +393,15 @@ namespace Dolby.Millicast
         private string GetCredentialsErrorMessage(Credentials credentials)
         {
             string message = "";
-            if(string.IsNullOrEmpty(streamName))
-                return  "Stream Name cannot be Empty.Please add Stream Name from Inspector";
-             if(string.IsNullOrEmpty(credentials.accountId))
+            if (string.IsNullOrEmpty(streamName))
+                return "Stream Name cannot be Empty.Please add Stream Name from Inspector";
+            if (string.IsNullOrEmpty(credentials.accountId))
                 message = "Stream Account ID";
-            if(string.IsNullOrEmpty(credentials.url))
+            if (string.IsNullOrEmpty(credentials.url))
                 message += string.IsNullOrEmpty(message) ? "Publish URL" : ", Publish URL";
-            if(string.IsNullOrEmpty(credentials.token))
+            if (string.IsNullOrEmpty(credentials.token))
                 message += string.IsNullOrEmpty(message) ? "Publish token" : ", Publish token";
-           
+
             return message + " can't be Empty. Please configure in Credentials Scriptable Object";
         }
 
@@ -419,7 +461,7 @@ namespace Dolby.Millicast
             }
             videoSourceType = VideoSourceType.Camera;
             _publishingCamera = CopyCamera(source);
-            if(resolution == null)
+            if (resolution == null)
                 resolution = _videoConfigData.pStreamSize;
             _videoTrack = _publishingCamera.CaptureStreamTrack(resolution.width, resolution.height);
             _renderer.SetTexture(_publishingCamera.targetTexture);
@@ -568,7 +610,7 @@ namespace Dolby.Millicast
         {
             if (_videoConfig == null) return;
 
-            if (_rtpSenders != null)
+            if (_rtpSenders != null && !isSimulcast)
             {
                 foreach (var rtpSender in _rtpSenders)
                 {
@@ -609,6 +651,7 @@ namespace Dolby.Millicast
             _videoConfig.maxFramerate = (uint)_videoConfigData.pQualitySettings.pFramerateOption;
             _videoConfig.resolutionDownScaling = (double)_videoConfigData.pQualitySettings.pScaleDownOption;
             options.videoCodec = _videoConfigData.pCodecType;
+            isSimulcast = _videoConfigData.simulcast;
             //stream size will be taken from video settings in SetVideoSource method
         }
 
@@ -642,7 +685,7 @@ namespace Dolby.Millicast
             {
                 Debug.Log("Video being published without Audio..");
             }
-            if (_videoTrack == null && ((videoSourceType == VideoSourceType.Camera && _videoSourceCamera == null) || 
+            if (_videoTrack == null && ((videoSourceType == VideoSourceType.Camera && _videoSourceCamera == null) ||
                 (videoSourceType == VideoSourceType.RenderTexture && _videoSourceRenderTexture == null)))
                 throw new Exception("Please assign Video Stream Source in Insector");
 

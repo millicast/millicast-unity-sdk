@@ -256,7 +256,7 @@ namespace Dolby.Millicast
                     _renderer.SetAudioTrack(audioTrack);
                 }
             };
-            _pc.SetUp(_signaling, _rtcConfiguration);
+            _pc.SetUp(_signaling, _rtcConfiguration, true);
         }
 
         void Awake()

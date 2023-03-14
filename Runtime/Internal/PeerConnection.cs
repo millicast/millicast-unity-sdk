@@ -361,15 +361,18 @@ namespace Dolby.Millicast
     /// </summary>
     /// <param name="signaling"></param>
     /// <param name="configuration"></param>
-    public void SetUp(ISignaling signaling, RTCConfiguration configuration)
+    public void SetUp(ISignaling signaling, RTCConfiguration configuration, bool addTransceiver = false)
     {
       _signaling = signaling;
       EstablishEvents();
       _pc = new RTCPeerConnection(ref configuration);
       _pc.OnNegotiationNeeded += OnNegotiationNeeded;
       _pc.OnTrack += OnTrackEvent;
-      _pc.AddTransceiver(TrackKind.Video);
-      _pc.AddTransceiver(TrackKind.Audio);
+      if(addTransceiver)
+      {
+        _pc.AddTransceiver(TrackKind.Video);
+        _pc.AddTransceiver(TrackKind.Audio);
+      }
     }
 
     public void Disconnect()
@@ -381,6 +384,11 @@ namespace Dolby.Millicast
     {
       return _pc.AddTrack(track);
     }
+    public RTCRtpTransceiver AddTransceiver(MediaStreamTrack track, RTCRtpTransceiverInit init=null)
+    {
+      return _pc.AddTransceiver(track, init);
+    }
+
 
     public void RemoveTrack(MediaStreamTrack track)
     {
