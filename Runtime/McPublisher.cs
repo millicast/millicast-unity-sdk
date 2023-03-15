@@ -251,10 +251,19 @@ namespace Dolby.Millicast
             return selectedCapabilities;
         }
 
+        private bool validateSimulcastLayerData()
+        {
+            if(_simulcastLayersInfo.High.max_bitrate_bps > _simulcastLayersInfo.Medium.max_bitrate_bps &&  _simulcastLayersInfo.Medium.max_bitrate_bps > _simulcastLayersInfo.Low.max_bitrate_bps)
+                return true;
+            return false;
+        }
+
         private RTCRtpTransceiverInit SetSimulcast(ref RTCRtpTransceiverInit init)
         {
             if(_simulcastLayersInfo == null)
                 _simulcastLayersInfo = new SimulcastLayers();
+            if(!validateSimulcastLayerData())
+                throw new Exception("Invalid Simulcast Layer Data. Please make sure that the max bit rate for Layers are in the order High > Medium > Low");
             init.direction = RTCRtpTransceiverDirection.SendOnly;
             List<RTCRtpEncodingParameters> encodingList = new List<RTCRtpEncodingParameters>();
             RTCRtpEncodingParameters parameterH = new RTCRtpEncodingParameters();
@@ -677,6 +686,7 @@ namespace Dolby.Millicast
             _videoConfig.resolutionDownScaling = (double)_videoConfigData.pQualitySettings.pScaleDownOption;
             options.videoCodec = _videoConfigData.pCodecType;
             isSimulcast = _videoConfigData.simulcast;
+            SetSimulcastData(_videoConfigData.pSimulcastSettings);
             //stream size will be taken from video settings in SetVideoSource method
         }
 
