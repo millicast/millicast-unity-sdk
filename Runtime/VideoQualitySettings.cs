@@ -105,12 +105,12 @@ namespace Dolby.Millicast
     public class LayerData
     {
         public ulong max_bitrate_bps;
-        public VideoQualitySettings.ScaleDownOption resolutionScaleDown;
+        //public VideoQualitySettings.ScaleDownOption resolutionScaleDown;
 
         public LayerData(ulong bitrate, VideoQualitySettings.ScaleDownOption option)
         {
             this.max_bitrate_bps = bitrate;
-            resolutionScaleDown = option;
+           // resolutionScaleDown = option;
         }
     }
     [System.Serializable]

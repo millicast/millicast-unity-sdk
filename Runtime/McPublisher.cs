@@ -117,6 +117,7 @@ namespace Dolby.Millicast
         //visibility will be controller by the EditorScript=> MyEditorClass
         [HideInInspector] public RenderTexture _videoSourceRenderTexture;
         private VideoConfig _videoConfig;
+        private SimulcastLayers _simulcastLayersInfo;
         private PublisherOptions _options = new PublisherOptions();
         /// <summary>
         /// You have to set the publisher options
@@ -252,30 +253,54 @@ namespace Dolby.Millicast
 
         private RTCRtpTransceiverInit SetSimulcast(ref RTCRtpTransceiverInit init)
         {
+            if(_simulcastLayersInfo == null)
+                _simulcastLayersInfo = new SimulcastLayers();
             init.direction = RTCRtpTransceiverDirection.SendOnly;
             List<RTCRtpEncodingParameters> encodingList = new List<RTCRtpEncodingParameters>();
             RTCRtpEncodingParameters parameterH = new RTCRtpEncodingParameters();
-            parameterH.maxBitrate = _videoConfigData.pSimulcastSettings.High.max_bitrate_bps;
-            // parameterH.scaleResolutionDownBy = (double) _videoConfigData.pSimulcastSettings.High.resolutionScaleDown;
+            parameterH.maxBitrate = _simulcastLayersInfo.High.max_bitrate_bps;
+            //parameterH.scaleResolutionDownBy = 2;//(double) _simulcastLayersInfo.High.resolutionScaleDown;
             parameterH.active = true;
-            // parameterH.rid = "0";
+            parameterH.rid = "0";
 
             RTCRtpEncodingParameters parameterM = new RTCRtpEncodingParameters();
-            parameterM.maxBitrate = _videoConfigData.pSimulcastSettings.Medium.max_bitrate_bps;
-            //parameterM.scaleResolutionDownBy = (double) _videoConfigData.pSimulcastSettings.Medium.resolutionScaleDown;
+            parameterM.maxBitrate = _simulcastLayersInfo.Medium.max_bitrate_bps;
+            //parameterM.scaleResolutionDownBy = 2;//(double) _simulcastLayersInfo.Medium.resolutionScaleDown;
             parameterM.active = true;
-            //  parameterM.rid = "1";
+            parameterM.rid = "1";
 
             RTCRtpEncodingParameters parameterL = new RTCRtpEncodingParameters();
-            parameterL.maxBitrate = _videoConfigData.pSimulcastSettings.Low.max_bitrate_bps;
-            //  parameterL.scaleResolutionDownBy = (double) _videoConfigData.pSimulcastSettings.Low.resolutionScaleDown;
+            parameterL.maxBitrate = _simulcastLayersInfo.Low.max_bitrate_bps;
+            //parameterL.scaleResolutionDownBy = 2;//(double) _simulcastLayersInfo.Low.resolutionScaleDown;
             parameterL.active = true;
-            // parameterL.rid = "2";
+            parameterL.rid = "2";
             encodingList.Add(parameterH);
             encodingList.Add(parameterM);
             encodingList.Add(parameterL);
             init.sendEncodings = encodingList.ToArray();
             return init;
+        }
+
+        private void RefreshSimulcastValues()
+        {
+            foreach (var transceiver in _pc.GetTransceivers())
+            {
+                if (_rtpSenders.Contains(transceiver.Sender) &&
+                    transceiver.Sender.Track is VideoStreamTrack)
+                {
+                    var parameters = transceiver.Sender.GetParameters();
+                    foreach (var encoding in parameters.encodings)
+                    {
+                        if(encoding.rid == "0")
+                            encoding.maxBitrate = _simulcastLayersInfo.High.max_bitrate_bps;
+                        else if(encoding.rid == "1")
+                            encoding.maxBitrate = _simulcastLayersInfo.Medium.max_bitrate_bps;
+                        else if(encoding.rid == "2")
+                            encoding.maxBitrate = _simulcastLayersInfo.Low.max_bitrate_bps;
+                    }
+                    transceiver.Sender.SetParameters(parameters);
+                }
+            }
         }
 
         /// <summary>
@@ -661,13 +686,29 @@ namespace Dolby.Millicast
         /// in real-time even while publishing.
         /// <param name="config"> Video Configuration.</param>
         /// </summary>
-        public void SetVideoConfig(VideoConfig config)
+        public void SetVideoConfig(VideoConfig config, bool simulcast = false)
         {
             _videoConfig = config;
-
+            this.isSimulcast = simulcast;
             if (_pc != null)
             {
                 UpdatePeerConnectionParameters();
+            }
+        }
+
+        /// <summary>
+        /// Update simulcast layer's encoding parameter values. Can be called
+        /// while publishing; Values will be applied
+        /// in real-time even while publishing.
+        /// <param name="layersinfo"> SimulcastLayers.</param>
+        /// </summary>
+        public void SetSimulcastData(SimulcastLayers layersinfo)
+        {
+            if(isSimulcast)
+            {
+                _simulcastLayersInfo = layersinfo;
+                if(isPublishing)
+                    RefreshSimulcastValues();
             }
         }
 
