@@ -22,8 +22,8 @@ MonoBehaviour:
     scaleDownOption: 1
   simulcastLayers:
     High:
-      max_bitrate_bps: 4000000
+      maxBitrateKbps: 4000
     Medium:
-      max_bitrate_bps: 900000
+      maxBitrateKbps: 900
     Low:
-      max_bitrate_bps: 400000
+      maxBitrateKbps: 400

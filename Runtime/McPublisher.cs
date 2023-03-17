@@ -253,7 +253,7 @@ namespace Dolby.Millicast
 
         private bool validateSimulcastLayerData()
         {
-            if(_simulcastLayersInfo.High.max_bitrate_bps > _simulcastLayersInfo.Medium.max_bitrate_bps &&  _simulcastLayersInfo.Medium.max_bitrate_bps > _simulcastLayersInfo.Low.max_bitrate_bps)
+            if(_simulcastLayersInfo.High.maxBitrateKbps > _simulcastLayersInfo.Medium.maxBitrateKbps &&  _simulcastLayersInfo.Medium.maxBitrateKbps > _simulcastLayersInfo.Low.maxBitrateKbps)
                 return true;
             return false;
         }
@@ -267,19 +267,19 @@ namespace Dolby.Millicast
             init.direction = RTCRtpTransceiverDirection.SendOnly;
             List<RTCRtpEncodingParameters> encodingList = new List<RTCRtpEncodingParameters>();
             RTCRtpEncodingParameters parameterH = new RTCRtpEncodingParameters();
-            parameterH.maxBitrate = _simulcastLayersInfo.High.max_bitrate_bps;
+            parameterH.maxBitrate = getBitrateInBPS(_simulcastLayersInfo.High.maxBitrateKbps);
             //parameterH.scaleResolutionDownBy = 2;//(double) _simulcastLayersInfo.High.resolutionScaleDown;
             parameterH.active = true;
             parameterH.rid = "0";
 
             RTCRtpEncodingParameters parameterM = new RTCRtpEncodingParameters();
-            parameterM.maxBitrate = _simulcastLayersInfo.Medium.max_bitrate_bps;
+            parameterM.maxBitrate = getBitrateInBPS(_simulcastLayersInfo.Medium.maxBitrateKbps);
             //parameterM.scaleResolutionDownBy = 2;//(double) _simulcastLayersInfo.Medium.resolutionScaleDown;
             parameterM.active = true;
             parameterM.rid = "1";
 
             RTCRtpEncodingParameters parameterL = new RTCRtpEncodingParameters();
-            parameterL.maxBitrate = _simulcastLayersInfo.Low.max_bitrate_bps;
+            parameterL.maxBitrate = getBitrateInBPS(_simulcastLayersInfo.Low.maxBitrateKbps);
             //parameterL.scaleResolutionDownBy = 2;//(double) _simulcastLayersInfo.Low.resolutionScaleDown;
             parameterL.active = true;
             parameterL.rid = "2";
@@ -288,6 +288,11 @@ namespace Dolby.Millicast
             encodingList.Add(parameterL);
             init.sendEncodings = encodingList.ToArray();
             return init;
+        }
+
+        private ulong getBitrateInBPS(ulong bitrate_kbps)
+        {
+            return 1000 * bitrate_kbps;
         }
 
         private void RefreshSimulcastValues()
@@ -301,11 +306,11 @@ namespace Dolby.Millicast
                     foreach (var encoding in parameters.encodings)
                     {
                         if(encoding.rid == "0")
-                            encoding.maxBitrate = _simulcastLayersInfo.High.max_bitrate_bps;
+                            encoding.maxBitrate = getBitrateInBPS(_simulcastLayersInfo.High.maxBitrateKbps);
                         else if(encoding.rid == "1")
-                            encoding.maxBitrate = _simulcastLayersInfo.Medium.max_bitrate_bps;
+                            encoding.maxBitrate = getBitrateInBPS(_simulcastLayersInfo.Medium.maxBitrateKbps);
                         else if(encoding.rid == "2")
-                            encoding.maxBitrate = _simulcastLayersInfo.Low.max_bitrate_bps;
+                            encoding.maxBitrate = getBitrateInBPS(_simulcastLayersInfo.Low.maxBitrateKbps);
                     }
                     transceiver.Sender.SetParameters(parameters);
                 }

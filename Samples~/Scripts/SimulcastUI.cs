@@ -23,15 +23,15 @@ public class SimulcastUI : MonoBehaviour
     {
         if(long.TryParse(bit_rate_input_high.text, out long bitrate_h))
         {
-            simulcastLayersData.High.max_bitrate_bps = (ulong)bitrate_h;
+            simulcastLayersData.High.maxBitrateKbps = (ulong)bitrate_h;
         }
         if(long.TryParse(bit_rate_input_med.text, out long bitrate_m))
         {
-            simulcastLayersData.Medium.max_bitrate_bps = (ulong)bitrate_m;
+            simulcastLayersData.Medium.maxBitrateKbps = (ulong)bitrate_m;
         }
         if(long.TryParse(bit_rate_input_low.text, out long bitrate_l))
         {
-            simulcastLayersData.Low.max_bitrate_bps = (ulong)bitrate_l;
+            simulcastLayersData.Low.maxBitrateKbps = (ulong)bitrate_l;
         }
         onUpdateSimulcastData?.Invoke(simulcastLayersData);
 

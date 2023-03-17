@@ -258,6 +258,15 @@ public class VideoConfigExample : MonoBehaviour
             options.Add(new TMP_Dropdown.OptionData { text = resolutionData.GetResolutionLabel(ResolutionData.SupportedResolutions.RES_4K) });
         }
         publishResolutionSelector.options = options;
+         if(codec == VideoCodec.VP8 || codec == VideoCodec.H264)
+        {
+            simulcastToggle.interactable = true;
+        }
+        else
+        {
+            simulcastToggle.isOn = false;
+            simulcastToggle.interactable = false;
+        }
     }
 
     void ChangePublishingResolution(int index)
