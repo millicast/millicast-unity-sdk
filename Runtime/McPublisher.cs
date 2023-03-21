@@ -65,6 +65,11 @@ namespace Dolby.Millicast
         /// Event called when the viewer count has been updated.
         /// </summary>
         public event DelegateOnViewerCount OnViewerCount;
+        public delegate void DelegateOnLayerEvent(McPublisher publisher, SimulcastInfo info);
+        /// <summary>
+        /// Event called when the Simulcast Layers data event triggered.
+        /// </summary>
+        public event DelegateOnLayerEvent OnSimulcastlayerInfo;
 
 
 
@@ -186,7 +191,7 @@ namespace Dolby.Millicast
 
             payload["name"] = streamName;
             payload["sdp"] = desc.sdp;
-            payload["events"] = new string[] { "active", "inactive", "viewercount" };
+            payload["events"] = new string[] { "active", "inactive", "viewercount", "layers" };
 
             var codecName = _options.videoCodec.ToString();
             payload["codec"] = codecName;
@@ -225,6 +230,9 @@ namespace Dolby.Millicast
                 {
                     case ISignaling.Event.VIEWER_COUNT:
                         OnViewerCount?.Invoke(this, payload.viewercount);
+                        break;
+                     case ISignaling.Event.LAYERS:
+                        OnSimulcastlayerInfo?.Invoke(this, DataContainer.ParseSimulcastLayers(payload.medias));
                         break;
                 }
             };
@@ -268,19 +276,19 @@ namespace Dolby.Millicast
             List<RTCRtpEncodingParameters> encodingList = new List<RTCRtpEncodingParameters>();
             RTCRtpEncodingParameters parameterH = new RTCRtpEncodingParameters();
             parameterH.maxBitrate = getBitrateInBPS(_simulcastLayersInfo.High.maxBitrateKbps);
-            //parameterH.scaleResolutionDownBy = 2;//(double) _simulcastLayersInfo.High.resolutionScaleDown;
+            parameterH.scaleResolutionDownBy = 1;//(double) _simulcastLayersInfo.High.resolutionScaleDown;
             parameterH.active = true;
             parameterH.rid = "0";
 
             RTCRtpEncodingParameters parameterM = new RTCRtpEncodingParameters();
             parameterM.maxBitrate = getBitrateInBPS(_simulcastLayersInfo.Medium.maxBitrateKbps);
-            //parameterM.scaleResolutionDownBy = 2;//(double) _simulcastLayersInfo.Medium.resolutionScaleDown;
+            parameterM.scaleResolutionDownBy = 1;//(double) _simulcastLayersInfo.Medium.resolutionScaleDown;
             parameterM.active = true;
             parameterM.rid = "1";
 
             RTCRtpEncodingParameters parameterL = new RTCRtpEncodingParameters();
             parameterL.maxBitrate = getBitrateInBPS(_simulcastLayersInfo.Low.maxBitrateKbps);
-            //parameterL.scaleResolutionDownBy = 2;//(double) _simulcastLayersInfo.Low.resolutionScaleDown;
+            parameterL.scaleResolutionDownBy = 1;//(double) _simulcastLayersInfo.Low.resolutionScaleDown;
             parameterL.active = true;
             parameterL.rid = "2";
             encodingList.Add(parameterH);

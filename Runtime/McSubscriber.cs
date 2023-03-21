@@ -129,6 +129,11 @@ namespace Dolby.Millicast
         public event DelegateOnViewerCount OnViewerCount;
 
         public delegate void DelegateOnConnectionError(McSubscriber subscribe, string message);
+        public delegate void DelegateOnLayerEvent(McSubscriber subscribe, SimulcastInfo info);
+        /// <summary>
+        /// Event called when the Simulcast Layers data event triggered.
+        /// </summary>
+        public event DelegateOnLayerEvent OnSimulcastlayerInfo;
         /// <summary>
         /// Event called when the there is a connection error to the service.
         /// </summary>
@@ -169,7 +174,7 @@ namespace Dolby.Millicast
             // TODO: Need to also add excludedSourceIds and pinnedSourceIds
             payload["streamId"] = streamName;
             payload["sdp"] = desc.sdp;
-            payload["events"] = new string[] { "active", "inactive", "stopped", "viewercount" };
+            payload["events"] = new string[] { "active", "inactive", "stopped", "viewercount","layers" };
 
             yield return _signaling?.Send(ISignaling.Event.SUBSCRIBE, payload);
         }
@@ -200,10 +205,27 @@ namespace Dolby.Millicast
                     case ISignaling.Event.VIEWER_COUNT:
                         OnViewerCount?.Invoke(this, payload.viewercount);
                         break;
+                    case ISignaling.Event.LAYERS:
+                        OnSimulcastlayerInfo?.Invoke(this, DataContainer.ParseSimulcastLayers(payload.medias));
+                        break;
                 }
             };
-
             StartCoroutine(AwaitSignalingMessages());
+        }
+
+        private void OnSimulcastLayerEvent(McSubscriber subscriber, SimulcastInfo info)
+        {
+            string text = "Active Simulcast Data: \n";
+            foreach (var item in info.Active)
+            {
+                text += "Item:"+item.Id+", Bitrate: "+item.Bitrate;
+                foreach (var layer in item.Layers)
+                {
+                    text += "\n\t layer:"+layer.TemporalLayerId+", Bitrate: "+layer.Bitrate;
+                }  
+                text +="\n";
+            }
+            Debug.Log(text);
         }
 
         /// <summary>
@@ -303,6 +325,7 @@ namespace Dolby.Millicast
 
         void Start()
         {
+            OnSimulcastlayerInfo += OnSimulcastLayerEvent;
             if (_subscribeOnStart)
             {
                 Subscribe();

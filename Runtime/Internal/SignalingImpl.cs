@@ -31,7 +31,7 @@ namespace Dolby.Millicast
     public int viewercount { get; set; }
     public string streamId { get; set; }
     public string sourceId { get; set; }
-
+    public object medias { get; set; }
     public List<TrackInfo> tracks;
   }
   internal class ServiceResponse
