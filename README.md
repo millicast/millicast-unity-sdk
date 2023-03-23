@@ -77,7 +77,7 @@ If using URP, users needs to convert the materials to URP by selecting the `Mate
 
         *  Add or select OpenGLES3
 
-        * Optionally Leave below options unticked:
+        *  Optionally Leave below options unticked:
             *   require ES3.1
             *   require ES3.1 + AEP
             *   require ES3.2
