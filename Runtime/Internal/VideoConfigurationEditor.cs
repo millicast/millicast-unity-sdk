@@ -40,7 +40,7 @@ namespace Dolby.Millicast
                 serializedObject.Update();
                 EditorGUILayout.PropertyField(_codecType, true);
                 EditorGUILayout.PropertyField(_resolution, true);
-                if(videoConfig.codecType == VideoCodec.VP8 || videoConfig.codecType == VideoCodec.H264)
+                if(videoConfig.codecType == VideoCodec.VP8)
                     EditorGUILayout.PropertyField(_simulcast, true);
                 else
                     videoConfig.simulcast = false;

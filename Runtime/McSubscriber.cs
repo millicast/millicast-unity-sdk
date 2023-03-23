@@ -218,10 +218,10 @@ namespace Dolby.Millicast
             string text = "Active Simulcast Data: \n";
             foreach (var item in info.Active)
             {
-                text += "Item:"+item.Id+", Bitrate: "+item.Bitrate;
+                text += "simulcast Id: "+item.Id+" , Bitrate: "+item.Bitrate;
                 foreach (var layer in item.Layers)
                 {
-                    text += "\n\t layer:"+layer.TemporalLayerId+", Bitrate: "+layer.Bitrate;
+                    text += "\n\t layer: "+layer.TemporalLayerId+", Bitrate: "+layer.Bitrate+", temporal layer id: "+layer.TemporalLayerId+", spatial layer id: "+layer.SpatialLayerId;
                 }  
                 text +="\n";
             }

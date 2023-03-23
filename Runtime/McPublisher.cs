@@ -248,7 +248,7 @@ namespace Dolby.Millicast
         private RTCRtpCodecCapability[] GetVideoCodecCapabilities()
         {
             var capabilities = InternalWebRTC.GetCodecCapabilities(TrackKind.Video);
-
+           
             var selectedCapabilities = Array.FindAll(capabilities, (e) =>
             {
                 return e.mimeType.Contains(options.videoCodec.ToString()) ||
@@ -277,20 +277,23 @@ namespace Dolby.Millicast
             RTCRtpEncodingParameters parameterH = new RTCRtpEncodingParameters();
             parameterH.maxBitrate = getBitrateInBPS(_simulcastLayersInfo.High.maxBitrateKbps);
             parameterH.scaleResolutionDownBy = 1;//(double) _simulcastLayersInfo.High.resolutionScaleDown;
+            parameterH.maxFramerate = 60;
             parameterH.active = true;
-            parameterH.rid = "0";
+            parameterH.rid = "h";
 
             RTCRtpEncodingParameters parameterM = new RTCRtpEncodingParameters();
             parameterM.maxBitrate = getBitrateInBPS(_simulcastLayersInfo.Medium.maxBitrateKbps);
             parameterM.scaleResolutionDownBy = 1;//(double) _simulcastLayersInfo.Medium.resolutionScaleDown;
             parameterM.active = true;
-            parameterM.rid = "1";
+            parameterM.maxFramerate = 60;
+            parameterM.rid = "m";
 
             RTCRtpEncodingParameters parameterL = new RTCRtpEncodingParameters();
             parameterL.maxBitrate = getBitrateInBPS(_simulcastLayersInfo.Low.maxBitrateKbps);
             parameterL.scaleResolutionDownBy = 1;//(double) _simulcastLayersInfo.Low.resolutionScaleDown;
             parameterL.active = true;
-            parameterL.rid = "2";
+            parameterL.maxFramerate = 60;
+            parameterL.rid = "l";
             encodingList.Add(parameterH);
             encodingList.Add(parameterM);
             encodingList.Add(parameterL);
@@ -313,14 +316,16 @@ namespace Dolby.Millicast
                     var parameters = transceiver.Sender.GetParameters();
                     foreach (var encoding in parameters.encodings)
                     {
-                        if(encoding.rid == "0")
+                        if(encoding.rid == "h")
                             encoding.maxBitrate = getBitrateInBPS(_simulcastLayersInfo.High.maxBitrateKbps);
-                        else if(encoding.rid == "1")
+                        else if(encoding.rid == "m")
                             encoding.maxBitrate = getBitrateInBPS(_simulcastLayersInfo.Medium.maxBitrateKbps);
-                        else if(encoding.rid == "2")
+                        else if(encoding.rid == "l")
                             encoding.maxBitrate = getBitrateInBPS(_simulcastLayersInfo.Low.maxBitrateKbps);
                     }
-                    transceiver.Sender.SetParameters(parameters);
+                    RTCError err = transceiver.Sender.SetParameters(parameters);
+                    if(err.errorType != RTCErrorType.None)
+                        Debug.Log($"{err.errorType} :Failed to update simulcast layers."+err.message);
                 }
             }
         }
