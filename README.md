@@ -62,6 +62,25 @@ If using URP, users needs to convert the materials to URP by selecting the `Mate
 *  **UISubscriber**
     This scene demonstrates the usage of MCSubscriber using the RawImage as streaming Target renderer. User can start/stop the video stream using the Subscribe/UnSubscribe buttons.
 
+### Additional Android Player Settings:
+    We currently support the OpenGLES3 Graphics API on Android Devices. Vulkan Graphics API is not supported.
+
+    If you encounter any crashes or difficulty deploying, check your project's player settings and update as below.
+    
+    Player Settings -> Other Settings 
+
+    * Un-tick Auto Graphics API
+
+    * Under Graphics APIs:
+
+        *  remove Vulkan
+
+        *  Add or select OpenGLES3
+
+        * Optionally Leave below options unticked:
+            *   require ES3.1
+            *   require ES3.1 + AEP
+            *   require ES3.2
 
 ### V1 Limitation
 Currently, using `AudioListener` as an audio source for publishing causes a drop in FPS. This is due to Unity WebRTC utilising `OnAudioFilterRead` to fetch audio frames from the `AudioListener`. We will be working on a fix for this in the next release. 
