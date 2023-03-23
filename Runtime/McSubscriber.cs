@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using Unity.WebRTC;
 using UnityEngine.UI;
 using UnityEngine;
+using UnityEngine.Events;
 using Newtonsoft.Json;
 
 namespace Dolby.Millicast
@@ -113,6 +114,8 @@ namespace Dolby.Millicast
         {
             get => this._renderAudioSources;
         }
+        [SerializeField] private UnityEvent simulcastEvent;
+        private SimulcastInfo simulCastInfo;
 
 
         public delegate void DelegateSubscriber(McSubscriber subscriber);
@@ -206,11 +209,30 @@ namespace Dolby.Millicast
                         OnViewerCount?.Invoke(this, payload.viewercount);
                         break;
                     case ISignaling.Event.LAYERS:
-                        OnSimulcastlayerInfo?.Invoke(this, DataContainer.ParseSimulcastLayers(payload.medias));
+                        try
+                        {
+                            simulCastInfo = DataContainer.ParseSimulcastLayers(payload.medias);
+                            OnSimulcastlayerInfo?.Invoke(this, simulCastInfo);
+                            simulcastEvent?.Invoke();
+                        }
+                        catch (System.Exception exception)
+                        {
+                            Debug.LogError("Failed to parse the Simulcast layers data: "+exception.Message);
+                        }
                         break;
                 }
             };
             StartCoroutine(AwaitSignalingMessages());
+        }
+        /// <summary>
+        /// Returns the simulcast layers available for the incoming video stream if its a simulcast stream.
+        /// Returns null if the stream is not simulcast.
+        /// </summary>
+        private SimulcastData[] GetSimulcastActivelayers()
+        {
+            if(simulCastInfo != null)
+                return simulCastInfo.Active;
+            return null;
         }
 
         private void OnSimulcastLayerEvent(McSubscriber subscriber, SimulcastInfo info)
