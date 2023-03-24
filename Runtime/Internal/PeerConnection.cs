@@ -350,7 +350,8 @@ namespace Dolby.Millicast
         switch (e)
         {
           case ISignaling.Event.RESPONSE:
-            OnCoroutineRunRequested.Invoke(OnRemoteAnswer(ParseAnswer(data)));
+            if(data != null)
+              OnCoroutineRunRequested.Invoke(OnRemoteAnswer(ParseAnswer(data)));
             break;
         }
       };

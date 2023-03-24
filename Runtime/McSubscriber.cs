@@ -553,6 +553,35 @@ namespace Dolby.Millicast
         {
             _renderer.RemoveAudioTarget(source);
         }
+        private Layer GetSimulcastlayer(string rid)
+        {
+            foreach (var item in simulCastInfo.Layers)
+            {
+                if(rid.ToLower().Equals(item.EncodingId.ToLower()))
+                    return item;
+            }
+            return null;
+        }
+        /// <summary>
+        /// Set a simulcast layer
+        /// </summary>
+        /// <param name="layer">
+        public void SetSimulcastLayer(string simulcastId)
+        {
+            Layer layer = GetSimulcastlayer(simulcastId);
+            if(layer != null)
+            {
+                var layerpayload = new Dictionary<string, dynamic>();
+                var payload = new Dictionary<string, dynamic>();
+                payload["encodingId"] = layer.EncodingId;
+                payload["spatialLayerId"] = layer.SpatialLayerId;
+                payload["temporalLayerId"] = layer.TemporalLayerId;
+                layerpayload["layer"] = payload;
+                _signaling.Send(ISignaling.Event.SELECT, layerpayload);
+            }
+            else
+                Debug.Log("Selected Layer not found");
+        }
     }
 
 }

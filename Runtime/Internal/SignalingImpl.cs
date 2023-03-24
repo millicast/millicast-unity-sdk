@@ -232,6 +232,9 @@ namespace Dolby.Millicast
         case ISignaling.Event.SUBSCRIBE:
           payload = PreparePayload("view", ref data);
           break;
+         case ISignaling.Event.SELECT:
+          payload = PreparePayload("select", ref data);
+          break;
         default:
           //TODO: Implement other events
           throw new NotImplementedException();
