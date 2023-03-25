@@ -276,21 +276,21 @@ namespace Dolby.Millicast
             List<RTCRtpEncodingParameters> encodingList = new List<RTCRtpEncodingParameters>();
             RTCRtpEncodingParameters parameterH = new RTCRtpEncodingParameters();
             parameterH.maxBitrate = getBitrateInBPS(_simulcastLayersInfo.High.maxBitrateKbps);
-            parameterH.scaleResolutionDownBy = 1;//(double) _simulcastLayersInfo.High.resolutionScaleDown;
+            parameterH.scaleResolutionDownBy = 1;
             parameterH.maxFramerate = 60;
             parameterH.active = true;
             parameterH.rid = "h";
 
             RTCRtpEncodingParameters parameterM = new RTCRtpEncodingParameters();
             parameterM.maxBitrate = getBitrateInBPS(_simulcastLayersInfo.Medium.maxBitrateKbps);
-            parameterM.scaleResolutionDownBy = 1;//(double) _simulcastLayersInfo.Medium.resolutionScaleDown;
+            parameterM.scaleResolutionDownBy = 1;
             parameterM.active = true;
             parameterM.maxFramerate = 60;
             parameterM.rid = "m";
 
             RTCRtpEncodingParameters parameterL = new RTCRtpEncodingParameters();
             parameterL.maxBitrate = getBitrateInBPS(_simulcastLayersInfo.Low.maxBitrateKbps);
-            parameterL.scaleResolutionDownBy = 1;//(double) _simulcastLayersInfo.Low.resolutionScaleDown;
+            parameterL.scaleResolutionDownBy = 1;
             parameterL.active = true;
             parameterL.maxFramerate = 60;
             parameterL.rid = "l";

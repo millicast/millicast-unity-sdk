@@ -553,7 +553,7 @@ namespace Dolby.Millicast
         {
             _renderer.RemoveAudioTarget(source);
         }
-        private Layer GetSimulcastlayer(string rid)
+        private Layer GetSimulcastLayer(string rid)
         {
             foreach (var item in simulCastInfo.Layers)
             {
@@ -565,10 +565,10 @@ namespace Dolby.Millicast
         /// <summary>
         /// Set a simulcast layer
         /// </summary>
-        /// <param name="layer">
-        public void SetSimulcastLayer(string simulcastId)
+        /// <param name="layer"> Expects encodingID which can be found in Layers class in SimulcastInfo.  </param>
+        public void SetSimulcastLayer(string encodingId)
         {
-            Layer layer = GetSimulcastlayer(simulcastId);
+            Layer layer = GetSimulcastLayer(encodingId);
             if(layer != null)
             {
                 var layerpayload = new Dictionary<string, dynamic>();
