@@ -11,6 +11,11 @@ using Newtonsoft.Json;
 
 namespace Dolby.Millicast
 {
+    [System.Serializable]
+    public class SimulcastEvent : UnityEvent<McSubscriber, SimulcastInfo>
+    {
+
+    }
 
     /// <summary>
     /// The Millicast subscriber class. Allows users to subscribe to Millicast streams.
@@ -114,7 +119,7 @@ namespace Dolby.Millicast
         {
             get => this._renderAudioSources;
         }
-        [SerializeField] private UnityEvent simulcastEvent;
+        [SerializeField] private SimulcastEvent simulcastEvent;
         private SimulcastInfo simulCastInfo;
 
 
@@ -213,7 +218,7 @@ namespace Dolby.Millicast
                         {
                             simulCastInfo = DataContainer.ParseSimulcastLayers(payload.medias);
                             OnSimulcastlayerInfo?.Invoke(this, simulCastInfo);
-                            simulcastEvent?.Invoke();
+                            simulcastEvent?.Invoke(this, simulCastInfo);
                         }
                         catch (System.Exception exception)
                         {
