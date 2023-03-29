@@ -233,10 +233,10 @@ namespace Dolby.Millicast
         /// Returns the simulcast layers available for the incoming video stream if its a simulcast stream.
         /// Returns null if the stream is not simulcast.
         /// </summary>
-        private SimulcastData[] GetSimulcastActivelayers()
+        private Layer[] GetSimulcastlayers()
         {
             if(simulCastInfo != null)
-                return simulCastInfo.Active;
+                return simulCastInfo.Layers;
             return null;
         }
 
@@ -558,22 +558,16 @@ namespace Dolby.Millicast
         {
             _renderer.RemoveAudioTarget(source);
         }
-        private Layer GetSimulcastLayer(string rid)
+        private SimulcastInfo GetSimulcastInfo()
         {
-            foreach (var item in simulCastInfo.Layers)
-            {
-                if(rid.ToLower().Equals(item.EncodingId.ToLower()))
-                    return item;
-            }
-            return null;
+            return simulCastInfo;
         }
         /// <summary>
         /// Set a simulcast layer
         /// </summary>
-        /// <param name="layer"> Expects encodingID which can be found in Layers class in SimulcastInfo.  </param>
-        public void SetSimulcastLayer(string encodingId)
+        /// <param name="layer"> Expects Layer object which can be found in Layers class in SimulcastInfo.  </param>
+        public void SetSimulcastLayer(Layer layer)
         {
-            Layer layer = GetSimulcastLayer(encodingId);
             if(layer != null)
             {
                 var layerpayload = new Dictionary<string, dynamic>();
