@@ -31,7 +31,7 @@ namespace Dolby.Millicast
     public int viewercount { get; set; }
     public string streamId { get; set; }
     public string sourceId { get; set; }
-
+    public object medias { get; set; }
     public List<TrackInfo> tracks;
   }
   internal class ServiceResponse
@@ -231,6 +231,9 @@ namespace Dolby.Millicast
           break;
         case ISignaling.Event.SUBSCRIBE:
           payload = PreparePayload("view", ref data);
+          break;
+         case ISignaling.Event.SELECT:
+          payload = PreparePayload("select", ref data);
           break;
         default:
           //TODO: Implement other events

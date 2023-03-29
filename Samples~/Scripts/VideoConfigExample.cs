@@ -33,12 +33,15 @@ public class VideoConfigExample : MonoBehaviour
     [SerializeField] private Button subscribeButton;
 
     [SerializeField] private Transform rotateObject;
+    [SerializeField] private GameObject qualitySettingsUI, simulcastSettingsUI;
+    [SerializeField] private Toggle simulcastToggle;
 
 
     private readonly VideoConfig _videoConfig = new VideoConfig();
     private StreamSize _streamSize = null;
     private ResolutionData resolutionData;
     private VideoQualitySettings qualitySettings;
+    private bool simulcast;
 
     // UI Settings for video configuration
     [SerializeField] private TMP_Dropdown maxBitrateSelector;
@@ -62,6 +65,8 @@ public class VideoConfigExample : MonoBehaviour
 
         publishButton.interactable = true;
         subscribeButton.interactable = false;
+        simulcast = simulcastToggle.isOn;
+        simulcastSettingsUI.GetComponent<SimulcastUI>().onUpdateSimulcastData += OnUpdateSimulcastValues;
 
         maxBitrateSelector.options = qualitySettings.bandwidthOptions
             .Select(pair => new TMP_Dropdown.OptionData { text = pair.Key })
@@ -180,6 +185,7 @@ public class VideoConfigExample : MonoBehaviour
 
         publishButton.interactable = false;
         videoCodecSelector.interactable = false;
+        simulcastToggle.interactable = false;
         _publisher.Publish();
     }
 
@@ -191,10 +197,11 @@ public class VideoConfigExample : MonoBehaviour
         _publisher.UnPublish();
         videoCodecSelector.interactable = true;
         subscribeButton.interactable = false;
+        simulcastToggle.interactable = true;
     }
     void CommitVideoConfigChange()
     {
-        _publisher.SetVideoConfig(_videoConfig);
+        _publisher.SetVideoConfig(_videoConfig, simulcast);
     }
 
 
@@ -251,6 +258,15 @@ public class VideoConfigExample : MonoBehaviour
             options.Add(new TMP_Dropdown.OptionData { text = resolutionData.GetResolutionLabel(ResolutionData.SupportedResolutions.RES_4K) });
         }
         publishResolutionSelector.options = options;
+         if(codec == VideoCodec.VP8)
+        {
+            simulcastToggle.interactable = true;
+        }
+        else
+        {
+            simulcastToggle.isOn = false;
+            simulcastToggle.interactable = false;
+        }
     }
 
     void ChangePublishingResolution(int index)
@@ -258,6 +274,18 @@ public class VideoConfigExample : MonoBehaviour
         var key = publishResolutionSelector.options.ElementAt(index).text;
         _streamSize = resolutionData.GetStreamSize(key);
         _publisher.SetVideoSource(cam, _streamSize);
+    }
+    public void OnToggleSimulcast(Toggle toggleBtn)
+    {
+        simulcast = toggleBtn.isOn;
+        CommitVideoConfigChange();
+        qualitySettingsUI.SetActive(!toggleBtn.isOn);
+        simulcastSettingsUI.SetActive(toggleBtn.isOn);
+    }
+
+    public void OnUpdateSimulcastValues(SimulcastLayers layersInfo)
+    {
+        _publisher.SetSimulcastData(layersInfo);
     }
     #endregion
 

@@ -6,10 +6,16 @@ using System.Text.RegularExpressions;
 using Unity.WebRTC;
 using UnityEngine.UI;
 using UnityEngine;
+using UnityEngine.Events;
 using Newtonsoft.Json;
 
 namespace Dolby.Millicast
 {
+    [System.Serializable]
+    public class SimulcastEvent : UnityEvent<McSubscriber, SimulcastInfo>
+    {
+
+    }
 
     /// <summary>
     /// The Millicast subscriber class. Allows users to subscribe to Millicast streams.
@@ -113,6 +119,8 @@ namespace Dolby.Millicast
         {
             get => this._renderAudioSources;
         }
+        [SerializeField] private SimulcastEvent simulcastEvent;
+        private SimulcastInfo simulCastInfo;
 
 
         public delegate void DelegateSubscriber(McSubscriber subscriber);
@@ -129,6 +137,11 @@ namespace Dolby.Millicast
         public event DelegateOnViewerCount OnViewerCount;
 
         public delegate void DelegateOnConnectionError(McSubscriber subscribe, string message);
+        public delegate void DelegateOnLayerEvent(McSubscriber subscribe, SimulcastInfo info);
+        /// <summary>
+        /// Event called when the Simulcast Layers data event triggered.
+        /// </summary>
+        public event DelegateOnLayerEvent OnSimulcastlayerInfo;
         /// <summary>
         /// Event called when the there is a connection error to the service.
         /// </summary>
@@ -169,7 +182,7 @@ namespace Dolby.Millicast
             // TODO: Need to also add excludedSourceIds and pinnedSourceIds
             payload["streamId"] = streamName;
             payload["sdp"] = desc.sdp;
-            payload["events"] = new string[] { "active", "inactive", "stopped", "viewercount" };
+            payload["events"] = new string[] { "active", "inactive", "stopped", "viewercount","layers" };
 
             yield return _signaling?.Send(ISignaling.Event.SUBSCRIBE, payload);
         }
@@ -200,10 +213,46 @@ namespace Dolby.Millicast
                     case ISignaling.Event.VIEWER_COUNT:
                         OnViewerCount?.Invoke(this, payload.viewercount);
                         break;
+                    case ISignaling.Event.LAYERS:
+                        try
+                        {
+                            simulCastInfo = DataContainer.ParseSimulcastLayers(payload.medias);
+                            OnSimulcastlayerInfo?.Invoke(this, simulCastInfo);
+                            simulcastEvent?.Invoke(this, simulCastInfo);
+                        }
+                        catch (System.Exception exception)
+                        {
+                            Debug.LogError("Failed to parse the Simulcast layers data: "+exception.Message);
+                        }
+                        break;
                 }
             };
-
             StartCoroutine(AwaitSignalingMessages());
+        }
+        /// <summary>
+        /// Returns the simulcast layers available for the incoming video stream if its a simulcast stream.
+        /// Returns null if the stream is not simulcast.
+        /// </summary>
+        private Layer[] GetSimulcastLayers()
+        {
+            if(simulCastInfo != null)
+                return simulCastInfo.Layers;
+            return null;
+        }
+
+        private void OnSimulcastLayerEvent(McSubscriber subscriber, SimulcastInfo info)
+        {
+            string text = "Active Simulcast Data: \n";
+            foreach (var item in info.Active)
+            {
+                text += "simulcast Id: "+item.Id+" , Bitrate: "+item.Bitrate;
+                foreach (var layer in item.Layers)
+                {
+                    text += "\n\t layer: "+layer.TemporalLayerId+", Bitrate: "+layer.Bitrate+", temporal layer id: "+layer.TemporalLayerId+", spatial layer id: "+layer.SpatialLayerId;
+                }  
+                text +="\n";
+            }
+            Debug.Log(text);
         }
 
         /// <summary>
@@ -256,7 +305,7 @@ namespace Dolby.Millicast
                     _renderer.SetAudioTrack(audioTrack);
                 }
             };
-            _pc.SetUp(_signaling, _rtcConfiguration);
+            _pc.SetUp(_signaling, _rtcConfiguration, true);
         }
 
         void Awake()
@@ -303,6 +352,7 @@ namespace Dolby.Millicast
 
         void Start()
         {
+            OnSimulcastlayerInfo += OnSimulcastLayerEvent;
             if (_subscribeOnStart)
             {
                 Subscribe();
@@ -507,6 +557,29 @@ namespace Dolby.Millicast
         public void RemoveRenderAudioSource(AudioSource source)
         {
             _renderer.RemoveAudioTarget(source);
+        }
+        private SimulcastInfo GetSimulcastInfo()
+        {
+            return simulCastInfo;
+        }
+        /// <summary>
+        /// Set a simulcast layer
+        /// </summary>
+        /// <param name="layer"> Expects Layer object which can be found in Layers class in SimulcastInfo.  </param>
+        public void SetSimulcastLayer(Layer layer)
+        {
+            if(layer != null)
+            {
+                var layerpayload = new Dictionary<string, dynamic>();
+                var payload = new Dictionary<string, dynamic>();
+                payload["encodingId"] = layer.EncodingId;
+                payload["spatialLayerId"] = layer.SpatialLayerId;
+                payload["temporalLayerId"] = layer.TemporalLayerId;
+                layerpayload["layer"] = payload;
+                _signaling.Send(ISignaling.Event.SELECT, layerpayload);
+            }
+            else
+                Debug.Log("Selected Layer not found");
         }
     }
 

@@ -14,7 +14,7 @@ namespace Dolby.Millicast
             audioSource;
         private McPublisher myPublisher;
 
-        void Awake()
+        void Init()
         {
             videoSourceCamera = serializedObject.FindProperty("_videoSourceCamera");
             videoSourceRenderTexture = serializedObject.FindProperty("_videoSourceRenderTexture");
@@ -25,6 +25,8 @@ namespace Dolby.Millicast
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
+            if(videoSourceCamera == null)
+                Init();
 
             if (myPublisher.videoSourceType == VideoSourceType.Camera)
             {

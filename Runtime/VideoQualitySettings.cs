@@ -101,4 +101,23 @@ namespace Dolby.Millicast
             framerateOptions.Add("5", FramerateOption.FR_5);
         }
     }
+    [System.Serializable]
+    public class LayerData
+    {
+        public ulong maxBitrateKbps;
+        //public VideoQualitySettings.ScaleDownOption resolutionScaleDown;
+
+        public LayerData(ulong bitrate, VideoQualitySettings.ScaleDownOption option)
+        {
+            this.maxBitrateKbps = bitrate;
+           // resolutionScaleDown = option;
+        }
+    }
+    [System.Serializable]
+    public class SimulcastLayers
+    {
+        public LayerData High = new LayerData(4000, VideoQualitySettings.ScaleDownOption.No_Scale);
+        public LayerData Medium = new LayerData(900, VideoQualitySettings.ScaleDownOption.SD_2);
+        public LayerData Low = new LayerData(400, VideoQualitySettings.ScaleDownOption.SD_4);
+    }
 }
