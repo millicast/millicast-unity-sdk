@@ -11,32 +11,53 @@ namespace Dolby.Millicast
             videoSourceCamera,
             videoSourceRenderTexture,
             audioListenerAsSource,
+            videoSourceType,
+            videoConfigData,
             audioSource;
         private McPublisher myPublisher;
 
-        void Awake()
+        void Init()
         {
             videoSourceCamera = serializedObject.FindProperty("_videoSourceCamera");
             videoSourceRenderTexture = serializedObject.FindProperty("_videoSourceRenderTexture");
             audioSource = serializedObject.FindProperty("_audioSource");
             audioListenerAsSource = serializedObject.FindProperty("_useAudioListenerAsSource");
+            videoSourceType = serializedObject.FindProperty("videoSourceType");
+            videoConfigData = serializedObject.FindProperty("_videoConfigData");
             myPublisher = target as McPublisher;
         }
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
-
-            if (myPublisher.videoSourceType == VideoSourceType.Camera)
+            try
             {
-                EditorGUILayout.PropertyField(videoSourceCamera, new GUIContent("Video Source Camera"));
+                if(myPublisher.streamType == StreamType.Video || myPublisher.streamType == StreamType.Both)
+                {
+                    EditorGUILayout.PropertyField(videoConfigData, new GUIContent("Video Configuration Data"));
+                    EditorGUILayout.PropertyField(videoSourceType, new GUIContent("Video Source Type"));
+                    if (myPublisher.videoSourceType == VideoSourceType.Camera)
+                    {
+                        EditorGUILayout.PropertyField(videoSourceCamera, new GUIContent("Video Source Camera"));
+                    }
+                    if (myPublisher.videoSourceType == VideoSourceType.RenderTexture)
+                    {
+                        EditorGUILayout.PropertyField(videoSourceRenderTexture, new GUIContent("Video Source Rendertexture"));
+                    }
+                }
+                if(myPublisher.streamType == StreamType.Audio || myPublisher.streamType == StreamType.Both)
+                {
+                    EditorGUILayout.PropertyField(audioListenerAsSource, new GUIContent("Use AudioListener As Source"));
+                    if (!myPublisher._useAudioListenerAsSource)
+                        EditorGUILayout.PropertyField(audioSource, new GUIContent("Audio Source"));
+                } 
+                
+                serializedObject.ApplyModifiedProperties();
             }
-            if (myPublisher.videoSourceType == VideoSourceType.RenderTexture)
+            catch (System.Exception)
             {
-                EditorGUILayout.PropertyField(videoSourceRenderTexture, new GUIContent("Video Source Rendertexture"));
+                Init();
             }
-            if (!myPublisher._useAudioListenerAsSource)
-                EditorGUILayout.PropertyField(audioSource, new GUIContent("Audio Source"));
-            serializedObject.ApplyModifiedProperties();
+           
         }
     }
 }

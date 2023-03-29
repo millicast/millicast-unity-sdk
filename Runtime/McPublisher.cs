@@ -25,8 +25,13 @@ namespace Dolby.Millicast
     public enum VideoSourceType
     {
         Camera,
-        RenderTexture,
-        None
+        RenderTexture
+    }
+    public enum StreamType
+    {
+        [InspectorName("Video Only")] Video,
+        [InspectorName("Audio Only")] Audio,
+        [InspectorName("Video + Audio")]Both
     }
 
     /// <summary>
@@ -97,22 +102,29 @@ namespace Dolby.Millicast
         /// before <c>Publish</c> is called.
         /// </summary>
         private McCredentials _credentials;
-        [Header("Video Configuration Settings")]
+        [SerializeField]
+        [Tooltip("Publish as soon as the script start")]
+        private bool _publishOnStart = false;
+
+        public StreamType streamType;
+
+        [Header("Video Configuration Settings :\n")]
         [Tooltip("Assign VideoConfiguration Scriptable Object reference here.")]
-        [SerializeField] private VideoConfiguration _videoConfigData;
+        [HideInInspector] public VideoConfiguration _videoConfigData;
         public VideoConfiguration videoConfigData { get => _videoConfigData; }
 
 
         public Credentials credentials { get; set; } = null;
 
-        public VideoSourceType videoSourceType;
+        [HideInInspector]public VideoSourceType videoSourceType;
         /// <summary>
         /// Whether or not to use the audio listener as a source to publishing. This
         /// is a UI setting. If the game object does not contain an AudioListener, 
         /// the option will have no effect. 
         /// </summary>
+        [Header("Audio Configuration Settings : \n")]
         [Tooltip("Only use this if the object contains an AudioListener")]
-        public bool _useAudioListenerAsSource = false;
+        [HideInInspector]public bool _useAudioListenerAsSource = false;
         [HideInInspector] public AudioSource _audioSource;
         //visibility will be controller by the EditorScript=> MyEditorClass
         [HideInInspector]public Camera _videoSourceCamera;
@@ -130,9 +142,7 @@ namespace Dolby.Millicast
             set { if (!isPublishing) this._options = value; }
         }
 
-        [SerializeField]
-        [Tooltip("Publish as soon as the script start")]
-        private bool _publishOnStart = false;
+        
 
         /// <summary>
         /// Munge the local sdp for publishing.
@@ -281,23 +291,16 @@ namespace Dolby.Millicast
 
             _pc.SetUp(_signaling, _rtcConfiguration);
             _rtpSenders.Clear();
-            if(_videoTrack == null || videoSourceType == VideoSourceType.None)
+            if(streamType == StreamType.Both || streamType == StreamType.Video)
             {
-                foreach (var track in new MediaStreamTrack[] { _audioTrack })
-                {
-                    if (track != null)
-                        _rtpSenders.Add(_pc.AddTrack(track));
-                }
+                 _rtpSenders.Add(_pc.AddTrack(_videoTrack));
+                
             }
-            else
+             if(streamType == StreamType.Both || streamType == StreamType.Audio)
             {
-                 foreach (var track in new MediaStreamTrack[] { _videoTrack, _audioTrack })
-                {
-                    if (track != null)
-                        _rtpSenders.Add(_pc.AddTrack(track));
-                }
+                 _rtpSenders.Add(_pc.AddTrack(_audioTrack));
+                
             }
-
             foreach (var transceiver in _pc.GetTransceivers())
             {
                 if (_rtpSenders.Contains(transceiver.Sender) &&
@@ -668,7 +671,7 @@ namespace Dolby.Millicast
         /// </summary>
         public void Publish()
         {
-
+            
             // Reset the state before publishing
             Reset();
             CheckAudioVideoSource();
