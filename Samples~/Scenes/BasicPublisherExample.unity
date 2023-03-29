@@ -480,6 +480,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7109873366099735391, guid: 19a53518c407fff4c83984cca62a1b30, type: 3}
+      propertyPath: _streamName
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 7109873366099735391, guid: 19a53518c407fff4c83984cca62a1b30, type: 3}
       propertyPath: _audioSource
       value: 
       objectReference: {fileID: 1871671195}

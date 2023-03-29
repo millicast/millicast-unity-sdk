@@ -14,8 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   codecType: 0
   resolution: 0
+  simulcast: 0
   qualitySettings:
     maxBitrate: 6000
     minBitrate: 2500
     framerateOption: 0
     scaleDownOption: 1
+  simulcastLayers:
+    High:
+      maxBitrateKbps: 4000
+    Medium:
+      maxBitrateKbps: 900
+    Low:
+      maxBitrateKbps: 400

@@ -50,6 +50,7 @@ namespace Dolby.Millicast
         private readonly List<RTCRtpSender> _rtpSenders = new List<RTCRtpSender>();
         private VideoStreamTrack _videoTrack;
         private Camera _publishingCamera = null;
+        private bool isSimulcast;
 
         private AudioStreamTrack _audioTrack;
 
@@ -70,6 +71,11 @@ namespace Dolby.Millicast
         /// Event called when the viewer count has been updated.
         /// </summary>
         public event DelegateOnViewerCount OnViewerCount;
+        public delegate void DelegateOnLayerEvent(McPublisher publisher, SimulcastInfo info);
+        /// <summary>
+        /// Event called when the Simulcast Layers data event triggered.
+        /// </summary>
+        public event DelegateOnLayerEvent OnSimulcastlayerInfo;
 
 
 
@@ -113,7 +119,6 @@ namespace Dolby.Millicast
         [HideInInspector] public VideoConfiguration _videoConfigData;
         public VideoConfiguration videoConfigData { get => _videoConfigData; }
 
-
         public Credentials credentials { get; set; } = null;
 
         [HideInInspector]public VideoSourceType videoSourceType;
@@ -127,10 +132,11 @@ namespace Dolby.Millicast
         [HideInInspector]public bool _useAudioListenerAsSource = false;
         [HideInInspector] public AudioSource _audioSource;
         //visibility will be controller by the EditorScript=> MyEditorClass
-        [HideInInspector]public Camera _videoSourceCamera;
-         //visibility will be controller by the EditorScript=> MyEditorClass
-        [HideInInspector]public RenderTexture _videoSourceRenderTexture;
+        [HideInInspector] public Camera _videoSourceCamera;
+        //visibility will be controller by the EditorScript=> MyEditorClass
+        [HideInInspector] public RenderTexture _videoSourceRenderTexture;
         private VideoConfig _videoConfig;
+        private SimulcastLayers _simulcastLayersInfo;
         private PublisherOptions _options = new PublisherOptions();
         /// <summary>
         /// You have to set the publisher options
@@ -197,7 +203,7 @@ namespace Dolby.Millicast
 
             payload["name"] = streamName;
             payload["sdp"] = desc.sdp;
-            payload["events"] = new string[] { "active", "inactive", "viewercount" };
+            payload["events"] = new string[] { "active", "inactive", "viewercount", "layers" };
 
             var codecName = _options.videoCodec.ToString();
             payload["codec"] = codecName;
@@ -237,6 +243,9 @@ namespace Dolby.Millicast
                     case ISignaling.Event.VIEWER_COUNT:
                         OnViewerCount?.Invoke(this, payload.viewercount);
                         break;
+                     case ISignaling.Event.LAYERS:
+                        OnSimulcastlayerInfo?.Invoke(this, DataContainer.ParseSimulcastLayers(payload.medias));
+                        break;
                 }
             };
 
@@ -251,7 +260,7 @@ namespace Dolby.Millicast
         private RTCRtpCodecCapability[] GetVideoCodecCapabilities()
         {
             var capabilities = InternalWebRTC.GetCodecCapabilities(TrackKind.Video);
-
+           
             var selectedCapabilities = Array.FindAll(capabilities, (e) =>
             {
                 return e.mimeType.Contains(options.videoCodec.ToString()) ||
@@ -260,6 +269,77 @@ namespace Dolby.Millicast
                  e.mimeType.Contains("ulpfec");
             });
             return selectedCapabilities;
+        }
+
+        private bool validateSimulcastLayerData()
+        {
+            if(_simulcastLayersInfo.High.maxBitrateKbps > _simulcastLayersInfo.Medium.maxBitrateKbps &&  _simulcastLayersInfo.Medium.maxBitrateKbps > _simulcastLayersInfo.Low.maxBitrateKbps)
+                return true;
+            return false;
+        }
+
+        private RTCRtpTransceiverInit SetSimulcast(ref RTCRtpTransceiverInit init)
+        {
+            if(_simulcastLayersInfo == null)
+                _simulcastLayersInfo = new SimulcastLayers();
+            if(!validateSimulcastLayerData())
+                throw new Exception("Invalid Simulcast Layer Data. Please make sure that the max bit rate for Layers are in the order High > Medium > Low");
+            init.direction = RTCRtpTransceiverDirection.SendOnly;
+            List<RTCRtpEncodingParameters> encodingList = new List<RTCRtpEncodingParameters>();
+            RTCRtpEncodingParameters parameterH = new RTCRtpEncodingParameters();
+            parameterH.maxBitrate = getBitrateInBPS(_simulcastLayersInfo.High.maxBitrateKbps);
+            parameterH.scaleResolutionDownBy = 1;
+            parameterH.maxFramerate = 60;
+            parameterH.active = true;
+            parameterH.rid = "h";
+
+            RTCRtpEncodingParameters parameterM = new RTCRtpEncodingParameters();
+            parameterM.maxBitrate = getBitrateInBPS(_simulcastLayersInfo.Medium.maxBitrateKbps);
+            parameterM.scaleResolutionDownBy = 1;
+            parameterM.active = true;
+            parameterM.maxFramerate = 60;
+            parameterM.rid = "m";
+
+            RTCRtpEncodingParameters parameterL = new RTCRtpEncodingParameters();
+            parameterL.maxBitrate = getBitrateInBPS(_simulcastLayersInfo.Low.maxBitrateKbps);
+            parameterL.scaleResolutionDownBy = 1;
+            parameterL.active = true;
+            parameterL.maxFramerate = 60;
+            parameterL.rid = "l";
+            encodingList.Add(parameterH);
+            encodingList.Add(parameterM);
+            encodingList.Add(parameterL);
+            init.sendEncodings = encodingList.ToArray();
+            return init;
+        }
+
+        private ulong getBitrateInBPS(ulong bitrate_kbps)
+        {
+            return 1000 * bitrate_kbps;
+        }
+
+        private void RefreshSimulcastValues()
+        {
+            foreach (var transceiver in _pc.GetTransceivers())
+            {
+                if (_rtpSenders.Contains(transceiver.Sender) &&
+                    transceiver.Sender.Track is VideoStreamTrack)
+                {
+                    var parameters = transceiver.Sender.GetParameters();
+                    foreach (var encoding in parameters.encodings)
+                    {
+                        if(encoding.rid == "h")
+                            encoding.maxBitrate = getBitrateInBPS(_simulcastLayersInfo.High.maxBitrateKbps);
+                        else if(encoding.rid == "m")
+                            encoding.maxBitrate = getBitrateInBPS(_simulcastLayersInfo.Medium.maxBitrateKbps);
+                        else if(encoding.rid == "l")
+                            encoding.maxBitrate = getBitrateInBPS(_simulcastLayersInfo.Low.maxBitrateKbps);
+                    }
+                    RTCError err = transceiver.Sender.SetParameters(parameters);
+                    if(err.errorType != RTCErrorType.None)
+                        Debug.Log($"{err.errorType} :Failed to update simulcast layers."+err.message);
+                }
+            }
         }
 
         /// <summary>
@@ -293,14 +373,29 @@ namespace Dolby.Millicast
             _rtpSenders.Clear();
             if(streamType == StreamType.Both || streamType == StreamType.Video)
             {
-                 _rtpSenders.Add(_pc.AddTrack(_videoTrack));
-                
+                if (_videoTrack != null)
+                {
+                    if (isSimulcast)
+                    {
+                        RTCRtpTransceiverInit init = new RTCRtpTransceiverInit();
+                        SetSimulcast(ref init);
+                        RTCRtpTransceiver trans = _pc.AddTransceiver(_videoTrack, init);
+                        if (trans != null)
+                            _rtpSenders.Add(trans.Sender);
+                        else
+                            Debug.LogError("Transceiver is null");
+                    }
+                    else
+                        _rtpSenders.Add(_pc.AddTrack(_videoTrack));
+                }
+
             }
-             if(streamType == StreamType.Both || streamType == StreamType.Audio)
+            if(streamType == StreamType.Both || streamType == StreamType.Audio)
             {
-                 _rtpSenders.Add(_pc.AddTrack(_audioTrack));
-                
-            }
+                if (_audioTrack != null)
+                    _rtpSenders.Add(_pc.AddTrack(_audioTrack));                
+            }           
+
             foreach (var transceiver in _pc.GetTransceivers())
             {
                 if (_rtpSenders.Contains(transceiver.Sender) &&
@@ -366,15 +461,15 @@ namespace Dolby.Millicast
         private string GetCredentialsErrorMessage(Credentials credentials)
         {
             string message = "";
-            if(string.IsNullOrEmpty(streamName))
-                return  "Stream Name cannot be Empty.Please add Stream Name from Inspector";
-             if(string.IsNullOrEmpty(credentials.accountId))
+            if (string.IsNullOrEmpty(streamName))
+                return "Stream Name cannot be Empty.Please add Stream Name from Inspector";
+            if (string.IsNullOrEmpty(credentials.accountId))
                 message = "Stream Account ID";
-            if(string.IsNullOrEmpty(credentials.url))
+            if (string.IsNullOrEmpty(credentials.url))
                 message += string.IsNullOrEmpty(message) ? "Publish URL" : ", Publish URL";
-            if(string.IsNullOrEmpty(credentials.token))
+            if (string.IsNullOrEmpty(credentials.token))
                 message += string.IsNullOrEmpty(message) ? "Publish token" : ", Publish token";
-           
+
             return message + " can't be Empty. Please configure in Credentials Scriptable Object";
         }
 
@@ -434,7 +529,7 @@ namespace Dolby.Millicast
             }
             videoSourceType = VideoSourceType.Camera;
             _publishingCamera = CopyCamera(source);
-            if(resolution == null)
+            if (resolution == null)
                 resolution = _videoConfigData.pStreamSize;
             _videoTrack = _publishingCamera.CaptureStreamTrack(resolution.width, resolution.height);
             _renderer.SetTexture(_publishingCamera.targetTexture);
@@ -577,7 +672,7 @@ namespace Dolby.Millicast
         {
             if (_videoConfig == null) return;
 
-            if (_rtpSenders != null)
+            if (_rtpSenders != null && !isSimulcast)
             {
                 foreach (var rtpSender in _rtpSenders)
                 {
@@ -618,6 +713,8 @@ namespace Dolby.Millicast
             _videoConfig.maxFramerate = (uint)_videoConfigData.pQualitySettings.pFramerateOption;
             _videoConfig.resolutionDownScaling = (double)_videoConfigData.pQualitySettings.pScaleDownOption;
             options.videoCodec = _videoConfigData.pCodecType;
+            isSimulcast = _videoConfigData.simulcast;
+            SetSimulcastData(_videoConfigData.pSimulcastSettings);
             //stream size will be taken from video settings in SetVideoSource method
         }
 
@@ -627,13 +724,29 @@ namespace Dolby.Millicast
         /// in real-time even while publishing.
         /// <param name="config"> Video Configuration.</param>
         /// </summary>
-        public void SetVideoConfig(VideoConfig config)
+        public void SetVideoConfig(VideoConfig config, bool simulcast = false)
         {
             _videoConfig = config;
-
+            this.isSimulcast = simulcast;
             if (_pc != null)
             {
                 UpdatePeerConnectionParameters();
+            }
+        }
+
+        /// <summary>
+        /// Update simulcast layer's encoding parameter values. Can be called
+        /// while publishing; Values will be applied
+        /// in real-time even while publishing.
+        /// <param name="layersinfo"> SimulcastLayers.</param>
+        /// </summary>
+        public void SetSimulcastData(SimulcastLayers layersinfo)
+        {
+            if(isSimulcast)
+            {
+                _simulcastLayersInfo = layersinfo;
+                if(isPublishing)
+                    RefreshSimulcastValues();
             }
         }
 
@@ -651,7 +764,7 @@ namespace Dolby.Millicast
             {
                 Debug.Log("Video being published without Audio..");
             }
-            if (_videoTrack == null && ((videoSourceType == VideoSourceType.Camera && _videoSourceCamera == null) || 
+            if (_videoTrack == null && ((videoSourceType == VideoSourceType.Camera && _videoSourceCamera == null) ||
                 (videoSourceType == VideoSourceType.RenderTexture && _videoSourceRenderTexture == null)))
                 throw new Exception("Please assign Video Stream Source in Insector");
 
