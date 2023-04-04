@@ -1,6 +1,6 @@
 using UnityEditor;
 using UnityEngine;
- 
+#if UNITY_EDITOR
 [CustomPropertyDrawer(typeof(DrawIfAttribute))]
 public class DrawIfPropertyDrawer : PropertyDrawer
 {
@@ -69,3 +69,4 @@ public class DrawIfPropertyDrawer : PropertyDrawer
     }
  
 }
+#endif
