@@ -84,3 +84,8 @@ If using URP, users needs to convert the materials to URP by selecting the `Mate
 
 ### V1 Limitation
 Currently, using `AudioListener` as an audio source for publishing causes a drop in FPS. This is due to Unity WebRTC utilising `OnAudioFilterRead` to fetch audio frames from the `AudioListener`. We will be working on a fix for this in the next release. 
+
+### Simulcast Feature
+
+* Supported Codec : VP8
+* Supported Platform : Windows
