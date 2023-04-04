@@ -18,8 +18,8 @@ namespace Dolby.Millicast
         [SerializeField] private ResolutionData.SupportedResolutions resolution;
         public bool simulcast;
         [SerializeField] private ResolutionData resolutionData = new ResolutionData();
-        [SerializeField] private VideoQualitySettings qualitySettings;
-        [SerializeField] private SimulcastLayers simulcastLayers = new SimulcastLayers();
+        [SerializeField] [DrawIf("simulcast", false)] private VideoQualitySettings qualitySettings = new VideoQualitySettings();
+        [SerializeField] [DrawIf("simulcast", true)] private SimulcastLayers simulcastLayers = new SimulcastLayers();
         public ResolutionData.SupportedResolutions pResolution { get { return resolution; } }
         public VideoCodec pCodecType { get { return codecType; } }
 

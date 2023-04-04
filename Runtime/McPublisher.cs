@@ -109,6 +109,9 @@ namespace Dolby.Millicast
 
         public Credentials credentials { get; set; } = null;
         public VideoSourceType videoSourceType;
+        [DrawIf("videoSourceType", VideoSourceType.Camera)] public Camera _videoSourceCamera;
+        //visibility will be controller by the EditorScript=> MyEditorClass
+        [DrawIf("videoSourceType", VideoSourceType.RenderTexture)] public RenderTexture _videoSourceRenderTexture;
         /// <summary>
         /// Whether or not to use the audio listener as a source to publishing. This
         /// is a UI setting. If the game object does not contain an AudioListener, 
@@ -116,11 +119,9 @@ namespace Dolby.Millicast
         /// </summary>
         [Tooltip("Only use this if the object contains an AudioListener")]
         public bool _useAudioListenerAsSource = false;
-        [HideInInspector] public AudioSource _audioSource;
+        [DrawIf("_useAudioListenerAsSource", false)] public AudioSource _audioSource;
         //visibility will be controller by the EditorScript=> MyEditorClass
-        [HideInInspector] public Camera _videoSourceCamera;
-        //visibility will be controller by the EditorScript=> MyEditorClass
-        [HideInInspector] public RenderTexture _videoSourceRenderTexture;
+       
         private VideoConfig _videoConfig;
         private SimulcastLayers _simulcastLayersInfo;
         private PublisherOptions _options = new PublisherOptions();
