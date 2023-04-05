@@ -545,10 +545,15 @@ namespace Dolby.Millicast
         /// <param name="resolution">The capturing resolution</param>
         public void SetVideoSource(RenderTexture source)
         {
-            videoSourceType = VideoSourceType.RenderTexture;
-            _videoTrack = CreateRenderTextureStreamTrack(source);
-            // We will also replace the old track if it exists
-            RefreshVideoTrack();
+            if(source != null)
+            {
+                videoSourceType = VideoSourceType.RenderTexture;
+                _videoTrack = CreateRenderTextureStreamTrack(source);
+                // We will also replace the old track if it exists
+                RefreshVideoTrack();
+            }
+            else
+                Debug.Log("Video is not being published as RenderTexture is null");
         }
 
         private void ClearSendersTrack()
@@ -593,18 +598,13 @@ namespace Dolby.Millicast
                     rt.graphicsFormat = format;
                     rt.Create();
                 }
+                _renderer.SetTexture(rt);
+                return new VideoStreamTrack(rt);
             }
             else
-            {
-                RenderTextureFormat format = WebRTC.GetSupportedRenderTextureFormat(SystemInfo.graphicsDeviceType);
-                rt = new RenderTexture(_videoConfigData.pStreamSize.width, _videoConfigData.pStreamSize.height, 0, format)
-                {
-                    antiAliasing = 1
-                };
-                rt.Create();
-            }
-            _renderer.SetTexture(rt);
-            return new VideoStreamTrack(rt);
+                return null;
+           
+            
         }
 
         /// <summary>
