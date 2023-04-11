@@ -153,7 +153,6 @@ namespace Dolby.Millicast
             set { if (!isPublishing) this._options = value; }
         }
 
-
         /// <summary>
         /// Munge the local sdp for publishing.
         /// </summary>
@@ -605,7 +604,7 @@ namespace Dolby.Millicast
                 return new VideoStreamTrack(rt);
             }
             else
-                return null;
+                return null;           
         }
 
         /// <summary>
