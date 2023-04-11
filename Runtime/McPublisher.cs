@@ -27,6 +27,12 @@ namespace Dolby.Millicast
         Camera,
         RenderTexture
     }
+    public enum StreamType
+    {
+        [InspectorName("Video Only")] Video,
+        [InspectorName("Audio Only")] Audio,
+        [InspectorName("Video + Audio")]Both
+    }
 
     /// <summary>
     /// The Millicast publisher. This class allows its users to publish audio and video media
@@ -102,24 +108,36 @@ namespace Dolby.Millicast
         /// before <c>Publish</c> is called.
         /// </summary>
         private McCredentials _credentials;
-        [Header("Video Configuration Settings")]
+        [SerializeField]
+        [Tooltip("Publish as soon as the script start")]
+        private bool _publishOnStart = false;
+
+        public StreamType streamType;
+
+        [Header("Video Configuration Settings :\n")]
         [Tooltip("Assign VideoConfiguration Scriptable Object reference here.")]
-        [SerializeField] private VideoConfiguration _videoConfigData;
+        [HideInInspector] public VideoConfiguration _videoConfigData;
         public VideoConfiguration videoConfigData { get => _videoConfigData; }
 
         public Credentials credentials { get; set; } = null;
+        [DrawIf("streamType", StreamType.Audio, true)]
         public VideoSourceType videoSourceType;
-        [DrawIf("videoSourceType", VideoSourceType.Camera)] public Camera _videoSourceCamera;
+        [DrawIf("streamType", StreamType.Audio, true)][DrawIf("videoSourceType", VideoSourceType.Camera)]
+        public Camera _videoSourceCamera;
         //visibility will be controller by the EditorScript=> MyEditorClass
-        [DrawIf("videoSourceType", VideoSourceType.RenderTexture)] public RenderTexture _videoSourceRenderTexture;
+        [DrawIf("streamType", StreamType.Audio, true)][DrawIf("videoSourceType", VideoSourceType.RenderTexture)]
+        public RenderTexture _videoSourceRenderTexture;
         /// <summary>
         /// Whether or not to use the audio listener as a source to publishing. This
         /// is a UI setting. If the game object does not contain an AudioListener, 
         /// the option will have no effect. 
         /// </summary>
-        [Tooltip("Only use this if the object contains an AudioListener")]
+        [Tooltip("Only use this if the object contains an AudioListener")]    
+        [DrawIf("streamType", StreamType.Video, true)]
         public bool _useAudioListenerAsSource = false;
-        [DrawIf("_useAudioListenerAsSource", false)] public AudioSource _audioSource;
+        [DrawIf("streamType", StreamType.Video, true)]
+        [DrawIf("_useAudioListenerAsSource", false)] 
+        public AudioSource _audioSource;
         //visibility will be controller by the EditorScript=> MyEditorClass
        
         private VideoConfig _videoConfig;
@@ -135,9 +153,6 @@ namespace Dolby.Millicast
             set { if (!isPublishing) this._options = value; }
         }
 
-        [SerializeField]
-        [Tooltip("Publish as soon as the script start")]
-        private bool _publishOnStart = false;
 
         /// <summary>
         /// Munge the local sdp for publishing.
@@ -360,26 +375,29 @@ namespace Dolby.Millicast
 
             _pc.SetUp(_signaling, _rtcConfiguration);
             _rtpSenders.Clear();
-
-            if (_videoTrack != null)
+            if(streamType == StreamType.Both || streamType == StreamType.Video)
             {
-                if (isSimulcast)
+                if (_videoTrack != null)
                 {
-                    RTCRtpTransceiverInit init = new RTCRtpTransceiverInit();
-                    SetSimulcast(ref init);
-                    RTCRtpTransceiver trans = _pc.AddTransceiver(_videoTrack, init);
-                    if (trans != null)
-                        _rtpSenders.Add(trans.Sender);
+                    if (isSimulcast)
+                    {
+                        RTCRtpTransceiverInit init = new RTCRtpTransceiverInit();
+                        SetSimulcast(ref init);
+                        RTCRtpTransceiver trans = _pc.AddTransceiver(_videoTrack, init);
+                        if (trans != null)
+                            _rtpSenders.Add(trans.Sender);
+                        else
+                            Debug.LogError("Transceiver is null");
+                    }
                     else
-                        Debug.LogError("Transceiver is null");
+                        _rtpSenders.Add(_pc.AddTrack(_videoTrack));
                 }
-                else
-                    _rtpSenders.Add(_pc.AddTrack(_videoTrack));
-
             }
-
-            if (_audioTrack != null)
-                _rtpSenders.Add(_pc.AddTrack(_audioTrack));
+            if(streamType == StreamType.Both || streamType == StreamType.Audio)
+            {
+                if (_audioTrack != null)
+                    _rtpSenders.Add(_pc.AddTrack(_audioTrack));                
+            }           
 
             foreach (var transceiver in _pc.GetTransceivers())
             {
@@ -528,18 +546,17 @@ namespace Dolby.Millicast
         /// </summary>
         /// <param name="source">The Target Render Texture source to capture from</param>
         /// <param name="resolution">The capturing resolution</param>
-        public void SetVideoSource(RenderTexture source, StreamSize resolution = null)
+        public void SetVideoSource(RenderTexture source)
         {
-            // Remove all senders
-            if (source == null)
+            if(source != null)
             {
-                ClearSendersTrack();
-                return;
+                videoSourceType = VideoSourceType.RenderTexture;
+                _videoTrack = CreateRenderTextureStreamTrack(source);
+                // We will also replace the old track if it exists
+                RefreshVideoTrack();
             }
-            videoSourceType = VideoSourceType.RenderTexture;
-            _videoTrack = CreateRenderTextureStreamTrack(source);
-            // We will also replace the old track if it exists
-            RefreshVideoTrack();
+            else
+                Debug.Log("Video is not being published as RenderTexture is null");
         }
 
         private void ClearSendersTrack()
@@ -584,18 +601,11 @@ namespace Dolby.Millicast
                     rt.graphicsFormat = format;
                     rt.Create();
                 }
+                _renderer.SetTexture(rt);
+                return new VideoStreamTrack(rt);
             }
             else
-            {
-                RenderTextureFormat format = WebRTC.GetSupportedRenderTextureFormat(SystemInfo.graphicsDeviceType);
-                rt = new RenderTexture(_videoConfigData.pStreamSize.width, _videoConfigData.pStreamSize.height, 0, format)
-                {
-                    antiAliasing = 1
-                };
-                rt.Create();
-            }
-            _renderer.SetTexture(rt);
-            return new VideoStreamTrack(rt);
+                return null;
         }
 
         /// <summary>
@@ -775,7 +785,7 @@ namespace Dolby.Millicast
         /// </summary>
         public void Publish()
         {
-
+            
             // Reset the state before publishing
             Reset();
             CheckAudioVideoSource();

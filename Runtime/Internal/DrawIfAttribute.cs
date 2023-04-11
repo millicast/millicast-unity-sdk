@@ -11,6 +11,7 @@ public class DrawIfAttribute : PropertyAttribute
  
     public string comparedPropertyName { get; private set; }
     public object comparedValue { get; private set; }
+    public bool invert { get; private set; }
     public DisablingType disablingType { get; private set; }
  
     /// <summary>
@@ -30,10 +31,11 @@ public class DrawIfAttribute : PropertyAttribute
     /// <param name="comparedPropertyName">The name of the property that is being compared (case sensitive).</param>
     /// <param name="comparedValue">The value the property is being compared to.</param>
     /// <param name="disablingType">The type of disabling that should happen if the condition is NOT met. Defaulted to DisablingType.DontDraw.</param>
-    public DrawIfAttribute(string comparedPropertyName, object comparedValue, DisablingType disablingType = DisablingType.DontDraw)
+    public DrawIfAttribute(string comparedPropertyName, object comparedValue, bool reverse = false)
     {
         this.comparedPropertyName = comparedPropertyName;
         this.comparedValue = comparedValue;
         this.disablingType = disablingType;
+        invert = (bool) reverse;
     }
 }
