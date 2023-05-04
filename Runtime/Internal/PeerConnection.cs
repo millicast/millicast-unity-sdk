@@ -171,6 +171,7 @@ namespace Dolby.Millicast
 
     private RTCPeerConnection _pc;
     private ISignaling _signaling;
+    private StatsParser parser;
 
 
     private void OnIceConnectionChange(RTCIceConnectionState state)
@@ -291,6 +292,21 @@ namespace Dolby.Millicast
         var error = op.Error;
         OnSetSessionDescriptionError(ref error);
       }
+    }
+  
+    public void CheckStats()
+    {
+        parser = new StatsParser(_pc);
+        OnCoroutineRunRequested?.Invoke(LoopStatsCoroutine());
+    }
+    private IEnumerator LoopStatsCoroutine()
+    {
+        do
+        {
+            yield return OnCoroutineRunRequested?.Invoke(parser.CheckStats());
+            yield return new WaitForSeconds(1f);
+        }
+        while(StatsParser.inboundAudioStreamChannelCount == -1);
     }
 
     private void OnCreateSessionDescriptionError(RTCError error)
