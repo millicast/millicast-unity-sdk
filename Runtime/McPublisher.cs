@@ -120,21 +120,26 @@ namespace Dolby.Millicast
         public VideoConfiguration videoConfigData { get => _videoConfigData; }
 
         public Credentials credentials { get; set; } = null;
-
-        [HideInInspector]public VideoSourceType videoSourceType;
+        [DrawIf("streamType", StreamType.Audio, true)]
+        public VideoSourceType videoSourceType;
+        [DrawIf("streamType", StreamType.Audio, true)][DrawIf("videoSourceType", VideoSourceType.Camera)]
+        public Camera _videoSourceCamera;
+        //visibility will be controller by the EditorScript=> MyEditorClass
+        [DrawIf("streamType", StreamType.Audio, true)][DrawIf("videoSourceType", VideoSourceType.RenderTexture)]
+        public RenderTexture _videoSourceRenderTexture;
         /// <summary>
         /// Whether or not to use the audio listener as a source to publishing. This
         /// is a UI setting. If the game object does not contain an AudioListener, 
         /// the option will have no effect. 
         /// </summary>
-        [Header("Audio Configuration Settings : \n")]
-        [Tooltip("Only use this if the object contains an AudioListener")]
-        [HideInInspector]public bool _useAudioListenerAsSource = false;
-        [HideInInspector] public AudioSource _audioSource;
+        [Tooltip("Only use this if the object contains an AudioListener")]    
+        [DrawIf("streamType", StreamType.Video, true)]
+        public bool _useAudioListenerAsSource = false;
+        [DrawIf("streamType", StreamType.Video, true)]
+        [DrawIf("_useAudioListenerAsSource", false)] 
+        public AudioSource _audioSource;
         //visibility will be controller by the EditorScript=> MyEditorClass
-        [HideInInspector] public Camera _videoSourceCamera;
-        //visibility will be controller by the EditorScript=> MyEditorClass
-        [HideInInspector] public RenderTexture _videoSourceRenderTexture;
+       
         private VideoConfig _videoConfig;
         private SimulcastLayers _simulcastLayersInfo;
         private PublisherOptions _options = new PublisherOptions();
@@ -147,8 +152,6 @@ namespace Dolby.Millicast
             get => this._options;
             set { if (!isPublishing) this._options = value; }
         }
-
-        
 
         /// <summary>
         /// Munge the local sdp for publishing.
@@ -388,7 +391,6 @@ namespace Dolby.Millicast
                     else
                         _rtpSenders.Add(_pc.AddTrack(_videoTrack));
                 }
-
             }
             if(streamType == StreamType.Both || streamType == StreamType.Audio)
             {
@@ -602,9 +604,7 @@ namespace Dolby.Millicast
                 return new VideoStreamTrack(rt);
             }
             else
-                return null;
-           
-            
+                return null;           
         }
 
         /// <summary>
