@@ -9,7 +9,7 @@
   "changelogUrl": "https://example.com/changelog.html",
   "licensesUrl": "https://example.com/licensing.html",
   "dependencies": {
-    "com.unity.webrtc": "3.0.0-pre.3",
+    "com.unity.webrtc": "https://github.com/CoSMoSoftware/com.unity.webrtc.git",
     "com.unity.nuget.newtonsoft-json": "3.0.2",
     "com.unity.inputsystem": "1.0.2"
   },
