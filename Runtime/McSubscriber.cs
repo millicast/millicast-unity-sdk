@@ -377,6 +377,7 @@ namespace Dolby.Millicast
                 VirtualAudioSpeaker speaker = GetVirtualAudioSpeaker();
                 if(speaker != null)
                 {
+                    speaker.SetChannelMap(StatsParser.ChannelMap);
                     _renderer.AddVirtualAudioSpeaker(speaker);
                 }
                 

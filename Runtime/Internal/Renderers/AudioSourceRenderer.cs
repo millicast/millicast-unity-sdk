@@ -48,7 +48,7 @@ namespace Dolby.Millicast
           int index = 0;
           foreach (var s in audiosources)
           {
-            s.SetTrack(_renderAudioTrack, index++, StatsParser.inboundAudioStreamChannelCount, StatsParser.ChannelMap);
+            s.SetTrack(_renderAudioTrack, index++, StatsParser.inboundAudioStreamChannelCount);
             s.loop = true;
             s.Play();
           }

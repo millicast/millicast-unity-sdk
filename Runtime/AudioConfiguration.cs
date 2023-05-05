@@ -37,11 +37,11 @@ namespace Dolby.Millicast
     public class FiveOneAudio
     {
         public AudioSource _left;
-        public AudioSource _right;
-        public AudioSource _center;
         public AudioSource _surroundLeft;
+        public AudioSource _right;
+        public AudioSource lfe;
         public AudioSource _surroundRight;
-        public AudioSource _lfe;
+        public AudioSource _center;
     }
     [System.Serializable]
     public class CustomAudio

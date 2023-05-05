@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 3777371134497413620}
   - component: {fileID: 8348859836122025578}
   m_Layer: 0
-  m_Name: lfe
+  m_Name: speaker_right
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -26,7 +26,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3777371134497413610}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -5}
+  m_LocalPosition: {x: 5, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -546,11 +546,11 @@ MonoBehaviour:
     _right: {fileID: 0}
   FiveOneAudioSpeakers:
     _left: {fileID: 3777371135265397235}
-    _right: {fileID: 3777371135385056399}
-    _center: {fileID: 3777371135638415046}
-    _surroundLeft: {fileID: 3777371135422021197}
+    _surroundLeft: {fileID: 3777371135638415046}
+    _right: {fileID: 3777371134497413620}
+    lfe: {fileID: 3777371135385056399}
     _surroundRight: {fileID: 3777371135024496913}
-    _lfe: {fileID: 3777371134497413620}
+    _center: {fileID: 3777371135422021197}
 --- !u!1 &3777371135385056398
 GameObject:
   m_ObjectHideFlags: 0
@@ -563,7 +563,7 @@ GameObject:
   - component: {fileID: 3777371135385056399}
   - component: {fileID: 5580005495865178290}
   m_Layer: 0
-  m_Name: speaker_right
+  m_Name: speaker_lfe
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -577,7 +577,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3777371135385056398}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5, y: 0, z: 0}
+  m_LocalPosition: {x: 3.06, y: 0, z: -1.93}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -726,7 +726,7 @@ GameObject:
   - component: {fileID: 3777371135422021197}
   - component: {fileID: 4180292831061183042}
   m_Layer: 0
-  m_Name: speaker_surround_left
+  m_Name: speaker_center
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -740,7 +740,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3777371135422021196}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -5, y: 0, z: -5}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -889,7 +889,7 @@ GameObject:
   - component: {fileID: 3777371135638415046}
   - component: {fileID: 7013060103620432242}
   m_Layer: 0
-  m_Name: speaker_center
+  m_Name: speaker_surround_left
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -903,7 +903,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3777371135638415045}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -5, y: 0, z: -5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
