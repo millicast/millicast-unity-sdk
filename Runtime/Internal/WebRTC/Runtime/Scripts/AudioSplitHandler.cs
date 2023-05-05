@@ -58,7 +58,7 @@ namespace Unity.WebRTC
                 float[] list = GetChannelData(data, key);
                 int index = 0;
                 float[] cachebuffer = new float[outputBufferSize];
-                for(int i = 0; i< list.Length && index < outputBufferSize-hardwarespeakersCount ; i++)//fill all the hardware speakers
+                for(int i = 0; i< list.Length ; i++)//fill all the hardware speakers
                 {
                     for(int j =0; j < hardwarespeakersCount; j++)
                         cachebuffer[index+j] = list[i];
