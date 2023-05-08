@@ -14,9 +14,9 @@ GameObject:
   m_Layer: 0
   m_Name: speaker_right
   m_TagString: Untagged
-  m_Icon: {fileID: 0}
+  m_Icon: {fileID: 2800000, guid: 060705c0862208744adf1a73f5255ac7, type: 3}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &3777371134497413611
 Transform:
@@ -177,9 +177,9 @@ GameObject:
   m_Layer: 0
   m_Name: speaker_surround_right
   m_TagString: Untagged
-  m_Icon: {fileID: 0}
+  m_Icon: {fileID: 2800000, guid: 060705c0862208744adf1a73f5255ac7, type: 3}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &3777371135024496914
 Transform:
@@ -340,9 +340,9 @@ GameObject:
   m_Layer: 0
   m_Name: speaker_left
   m_TagString: Untagged
-  m_Icon: {fileID: 0}
+  m_Icon: {fileID: 2800000, guid: 060705c0862208744adf1a73f5255ac7, type: 3}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &3777371135265397244
 Transform:
@@ -504,7 +504,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &3777371135319186085
 Transform:
@@ -565,9 +565,9 @@ GameObject:
   m_Layer: 0
   m_Name: speaker_lfe
   m_TagString: Untagged
-  m_Icon: {fileID: 0}
+  m_Icon: {fileID: 2800000, guid: 060705c0862208744adf1a73f5255ac7, type: 3}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &3777371135385056392
 Transform:
@@ -728,9 +728,9 @@ GameObject:
   m_Layer: 0
   m_Name: speaker_center
   m_TagString: Untagged
-  m_Icon: {fileID: 0}
+  m_Icon: {fileID: 2800000, guid: 060705c0862208744adf1a73f5255ac7, type: 3}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &3777371135422021198
 Transform:
@@ -891,9 +891,9 @@ GameObject:
   m_Layer: 0
   m_Name: speaker_surround_left
   m_TagString: Untagged
-  m_Icon: {fileID: 0}
+  m_Icon: {fileID: 2800000, guid: 060705c0862208744adf1a73f5255ac7, type: 3}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &3777371135638415047
 Transform:

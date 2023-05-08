@@ -1,4 +1,6 @@
 
+using System;
+using UnityEditor;
 using UnityEngine;
 
 [RequireComponent(typeof(AudioSource))]
@@ -41,6 +43,11 @@ public class CustomAudioSource : MonoBehaviour
     [Tooltip("Spread")]
     [Range(0f, 360f)]
     private float spread = 0f;
+    private Texture2D PlayIcon, DefaultIcon;
+    private float minSpectrumVal = 0.001f;
+    private int spectrumMultiplier = 100;
+    private bool isPlaying = false;
+    private float spectrumVal;
 
     public float Spread
     {
@@ -75,6 +82,8 @@ public class CustomAudioSource : MonoBehaviour
         audioSource.maxDistance = maxDistance;
         audioSource.spread = spread;
         audioSource.volume = volume;
+        PlayIcon = Resources.Load<Texture2D>("Icons/speaker-playing");
+        DefaultIcon = Resources.Load<Texture2D>("Icons/speaker-default");
     }
 
     private void OnDrawGizmosSelected()
@@ -101,6 +110,13 @@ public class CustomAudioSource : MonoBehaviour
     }
 
 
+    private void updateSpectrumData()
+    {
+        float[] sample = new float[128];
+        audioSource.GetSpectrumData(sample, 0, FFTWindow.Blackman);
+        if(sample != null)
+            spectrumVal = sample[0]* spectrumMultiplier;
+    }
     private void OnDrawGizmos()
     {
         if (!Application.isPlaying)
@@ -112,5 +128,25 @@ public class CustomAudioSource : MonoBehaviour
             audioSource.volume = volume;
             OnDrawGizmosSelected();
         }
+        else
+        {
+            updateSpectrumData();
+            if(spectrumVal > minSpectrumVal && !isPlaying)
+            {
+                isPlaying = true;
+                SetIcon(true);
+            }
+            if(isPlaying && spectrumVal < minSpectrumVal)
+            {
+                isPlaying = false;
+                SetIcon(false);            }
+                
+        }
     }
+
+     private void SetIcon(bool isplaying)
+     {
+        Texture2D icon = isplaying ? PlayIcon : DefaultIcon;
+        EditorGUIUtility.SetIconForObject(gameObject, (Texture2D) icon);
+     }
 }
