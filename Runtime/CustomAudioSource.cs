@@ -86,7 +86,7 @@ public class CustomAudioSource : MonoBehaviour
         DefaultIcon = Resources.Load<Texture2D>("Icons/speaker-default");
     }
 
-    private void OnDrawGizmosSelected()
+    private void DrawGizmos()
     {
         // Draw max and min distance spheres
         Gizmos.color = new Color(0f, 1f, 0f, 0.25f);
@@ -95,18 +95,6 @@ public class CustomAudioSource : MonoBehaviour
         Gizmos.color = new Color(0f, 0f, 1f, 0.25f);
         Gizmos.DrawSphere(transform.position, minDistance);
 
-        // Draw spread cone
-        Vector3 spreadVector = Quaternion.Euler(0f, 0f, -spread / 2f) * transform.right;
-        Gizmos.color = new Color(1f, 1f, 1f, 0.80f);
-        Gizmos.DrawRay(transform.position, spreadVector * maxDistance);
-
-        Gizmos.color = new Color(1f, 1f, 1f, 0.80f);
-        spreadVector = Quaternion.Euler(0f, 0f, spread / 2f) * transform.right;
-        Gizmos.DrawRay(transform.position, spreadVector * maxDistance);
-
-        // Draw sound direction arrow
-        Gizmos.color = new Color(1f, 0f, 0f, 0.80f);
-        Gizmos.DrawRay(transform.position, transform.forward * maxDistance);
     }
 
 
@@ -126,7 +114,8 @@ public class CustomAudioSource : MonoBehaviour
             audioSource.maxDistance = maxDistance;
             audioSource.spread = spread;
             audioSource.volume = volume;
-            OnDrawGizmosSelected();
+
+            DrawGizmos();
         }
         else
         {
