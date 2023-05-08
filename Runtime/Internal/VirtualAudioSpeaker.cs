@@ -47,14 +47,13 @@ namespace Dolby.Millicast
         {
              for(int i =0; i < sourceArray.Length; i++)
             {
-                sourceArray[i].gameObject.name += "::"+getspeakername(i);
+                sourceArray[i].gameObject.name = getspeakername(i);
             }
         }
         private int getChannelIndex(int orderIndex)
         {
             if(audioChannelType == AudioSpeakerMode.Mode5point1)
             {
-                Debug.Log("channel map:");
                 return channelMap[orderIndex];
             }
             return orderIndex;
