@@ -73,7 +73,7 @@ public class CustomAudioSource : MonoBehaviour
             audioSource.volume = volume;
         }
     }
-
+    #if UNITY_EDITOR
     private void Awake()
     {
         audioSource = GetComponent<AudioSource>();
@@ -85,7 +85,7 @@ public class CustomAudioSource : MonoBehaviour
         PlayIcon = Resources.Load<Texture2D>("Icons/speaker-playing");
         DefaultIcon = Resources.Load<Texture2D>("Icons/speaker-default");
     }
-
+    
     private void DrawGizmos()
     {
         // Draw max and min distance spheres
@@ -105,6 +105,7 @@ public class CustomAudioSource : MonoBehaviour
         if(sample != null)
             spectrumVal = sample[0]* spectrumMultiplier;
     }
+    
     private void OnDrawGizmos()
     {
         if (!Application.isPlaying)
@@ -139,4 +140,5 @@ public class CustomAudioSource : MonoBehaviour
         Texture2D icon = isplaying ? PlayIcon : DefaultIcon;
         EditorGUIUtility.SetIconForObject(gameObject, (Texture2D) icon);
      }
+     #endif
 }
