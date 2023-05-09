@@ -128,7 +128,8 @@ public class CustomAudioSource : MonoBehaviour
             if(isPlaying && spectrumVal < minSpectrumVal)
             {
                 isPlaying = false;
-                SetIcon(false);            }
+                SetIcon(false);            
+            }
                 
         }
     }
