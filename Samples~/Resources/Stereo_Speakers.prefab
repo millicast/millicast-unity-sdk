@@ -336,7 +336,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: beda72193d7c4fe4586c4f4ee3f413e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  audioChannelType: 2
+  audioChannelType: 1
   speaker: {fileID: 0}
   StereoSpeakers:
     _left: {fileID: 1837256999669334472}
@@ -345,6 +345,15 @@ MonoBehaviour:
     _left: {fileID: 0}
     _surroundLeft: {fileID: 0}
     _right: {fileID: 0}
-    lfe: {fileID: 0}
+    _lfe: {fileID: 0}
     _surroundRight: {fileID: 0}
     _center: {fileID: 0}
+  SevenOneAudioSpeakers:
+    _frontLeft: {fileID: 0}
+    _frontRight: {fileID: 0}
+    _center: {fileID: 0}
+    _leftSurround: {fileID: 0}
+    _rightSurround: {fileID: 0}
+    _surroundBackLeft: {fileID: 0}
+    _surroundBackRight: {fileID: 0}
+    _lfe: {fileID: 0}

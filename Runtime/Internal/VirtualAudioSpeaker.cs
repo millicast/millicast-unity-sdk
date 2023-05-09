@@ -3,26 +3,37 @@ using System.Collections.Generic;
 using UnityEngine;
 namespace Dolby.Millicast
 {
+
+    public enum VirtualSpeakerMode
+    {
+        Mono,
+        Stereo,
+        Mode5point1,
+        Mode7point1
+    }
     public class VirtualAudioSpeaker : MonoBehaviour
     {
-        public AudioSpeakerMode audioChannelType;
-        [DrawIf("audioChannelType", AudioSpeakerMode.Mono)] public AudioSource speaker;
-        [DrawIf("audioChannelType", AudioSpeakerMode.Stereo)] public StereoAudio StereoSpeakers;
-        [DrawIf("audioChannelType", AudioSpeakerMode.Mode5point1)] public FiveOneAudio FiveOneAudioSpeakers;
+        public VirtualSpeakerMode audioChannelType;
+        [DrawIf("audioChannelType", VirtualSpeakerMode.Mono)] public AudioSource speaker;
+        [DrawIf("audioChannelType", VirtualSpeakerMode.Stereo)] public StereoAudio StereoSpeakers;
+        [DrawIf("audioChannelType", VirtualSpeakerMode.Mode5point1)] public FiveOneAudio FiveOneAudioSpeakers;
+        [DrawIf("audioChannelType", VirtualSpeakerMode.Mode7point1)] public SevenOneAudio SevenOneAudioSpeakers;
 
         private int[] channelMap;
         public AudioSource[] getAudioSpeakers()
         {
             switch(audioChannelType)
             {
-                case AudioSpeakerMode.Mono :
+                case VirtualSpeakerMode.Mono :
                     return getMonoSpeakers();
-                case AudioSpeakerMode.Stereo:
-                    return getStereoSpeakers();
-                case AudioSpeakerMode.Mode5point1:
+                case VirtualSpeakerMode.Stereo:
+                    return StereoSpeakers.getSpeakers();
+                case VirtualSpeakerMode.Mode5point1:
                     return getFiveOneSpeakers();
+                 case VirtualSpeakerMode.Mode7point1:
+                    return getSevenOneSpeakers();
                 default:
-                    return getStereoSpeakers();
+                    return getMonoSpeakers();
             }
         }
         public void SetChannelMap(int[] channelMap)
@@ -52,7 +63,7 @@ namespace Dolby.Millicast
         }
         private int getChannelIndex(int orderIndex)
         {
-            if(audioChannelType == AudioSpeakerMode.Mode5point1)
+            if(audioChannelType == VirtualSpeakerMode.Mode5point1)
             {
                 return channelMap[orderIndex];
             }
@@ -71,8 +82,27 @@ namespace Dolby.Millicast
             */
         private AudioSource[] getFiveOneSpeakers()
         {
-            AudioSource[] speakers = {FiveOneAudioSpeakers._left, FiveOneAudioSpeakers._surroundLeft, FiveOneAudioSpeakers._right, FiveOneAudioSpeakers._center, FiveOneAudioSpeakers.lfe, FiveOneAudioSpeakers._surroundRight};
-            updateSpeakerName(speakers);
+            AudioSource[] speakers = FiveOneAudioSpeakers.getSpeakers();
+            //updateSpeakerName(speakers);
+            AudioSource[] indexedSpeakers = new AudioSource[speakers.Length];
+
+            for(int i =0; i< indexedSpeakers.Length; i++)
+            {
+                indexedSpeakers[getChannelIndex(i)] = speakers[i];
+            }
+            string text = "";
+            for(int i =0; i< channelMap.Length; i++)
+                text += channelMap[i];
+             for(int i =0; i< indexedSpeakers.Length; i++)
+                text += indexedSpeakers[i].gameObject.name+",";
+            Debug.Log(text);
+            //left, right, center, lfe, sleft, sright
+            return indexedSpeakers;
+        }
+        private AudioSource[] getSevenOneSpeakers()
+        {
+            AudioSource[] speakers = SevenOneAudioSpeakers.getSpeakers();
+            //updateSpeakerName(speakers);
             AudioSource[] indexedSpeakers = new AudioSource[speakers.Length];
 
             for(int i =0; i< indexedSpeakers.Length; i++)
@@ -91,7 +121,7 @@ namespace Dolby.Millicast
             private string getspeakername(int channelIndex)
 	        {
 	            //channel map:0,4,1,2,3,5 
-	            if(audioChannelType == AudioSpeakerMode.Mode5point1)
+	            if(audioChannelType == VirtualSpeakerMode.Mode5point1)
 	            {
 	                switch (channelIndex)
 	                {
@@ -111,7 +141,7 @@ namespace Dolby.Millicast
 	                        return "invalid";
 	                }
 	            }
-	            else if(audioChannelType == AudioSpeakerMode.Stereo)
+	            else if(audioChannelType == VirtualSpeakerMode.Stereo)
 	            {
 	                switch (channelIndex)
 	                {
