@@ -24,8 +24,6 @@ namespace Dolby.Millicast
         [DrawIf("audioChannelType", VirtualSpeakerMode.Mono)] public AudioSource speaker;
         [DrawIf("audioChannelType", VirtualSpeakerMode.Stereo)] public StereoAudio StereoSpeakers;
         [DrawIf("audioChannelType", VirtualSpeakerMode.Mode5point1)] public FiveOneAudio FiveOneAudioSpeakers;
-        [DrawIf("audioChannelType", VirtualSpeakerMode.Mode7point1)] public CustomAudio CustomAudioSpeakers;
-
     }
     [System.Serializable]
     public class StereoAudio
@@ -54,24 +52,7 @@ namespace Dolby.Millicast
            return speakers;
         }
     }
-    [System.Serializable]
-    public class SevenOneAudio
-    {
-        public AudioSource _frontLeft;
-        public AudioSource _frontRight;
-        public AudioSource _center;
-        public AudioSource _left;
-        public AudioSource _right;
-        public AudioSource _rearLeft;
-        public AudioSource _rearRight;
-        public AudioSource _lfe;
-        public AudioSource[] getSpeakers()
-        {
-           AudioSource[] speakers =  {_frontLeft, _frontRight, _center, _left, _right, _rearLeft, _rearRight, _lfe};
-           return speakers;
-        }
-
-    }
+    
     [System.Serializable]
     public class CustomAudio
     {

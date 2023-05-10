@@ -398,14 +398,6 @@ namespace Dolby.Millicast
                         speaker6 = obj.GetComponent<VirtualAudioSpeaker>();
                     }
                     return speaker6;
-                case 8:
-                    VirtualAudioSpeaker speaker8 = virtualAudioSpeakers.Find( x => x.audioChannelType == VirtualSpeakerMode.Mode5point1);
-                    if(speaker8 == null)
-                    {
-                        GameObject obj = Instantiate (Resources.Load ("Seven_One_Speaker") as GameObject, transform);
-                        speaker8 = obj.GetComponent<VirtualAudioSpeaker>();
-                    }
-                    return speaker8;
                 default:
                     return null;
             }
