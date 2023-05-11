@@ -119,6 +119,8 @@ namespace Dolby.Millicast
         {
             get => this._renderAudioSources;
         }
+       // public AdvancedAudioConfig AdvancedAudioConfiguration;
+        public List<VirtualAudioSpeaker> virtualAudioSpeakers;
         [SerializeField] private SimulcastEvent simulcastEvent;
         private SimulcastInfo simulCastInfo;
 
@@ -146,6 +148,7 @@ namespace Dolby.Millicast
         /// Event called when the there is a connection error to the service.
         /// </summary>
         public event DelegateOnConnectionError OnConnectionError;
+        private int channelsCount = -1;
 
 
         /// <summary>
@@ -283,6 +286,7 @@ namespace Dolby.Millicast
                 Debug.Log("[PeerConnection] established connection.");
                 isSubscribing = true;
                 OnSubscribing?.Invoke(this);
+                _pc.CheckStats();
             };
             _pc.OnCoroutineRunRequested += (e) =>
             {
@@ -298,7 +302,6 @@ namespace Dolby.Millicast
                           _renderer.SetTexture(tex);
                       };
                 }
-
                 if (e.Track is AudioStreamTrack audioTrack)
                 {
                     Debug.Log("[Subscriber] Received audio track");
@@ -361,6 +364,43 @@ namespace Dolby.Millicast
         private void Update()
         {
             _signaling?.Dispatch();
+            if(StatsParser.inboundAudioStreamChannelCount > 0 && channelsCount != StatsParser.inboundAudioStreamChannelCount)
+            {
+                channelsCount = StatsParser.inboundAudioStreamChannelCount;
+                if(channelsCount == 2)
+                {
+                    foreach (var audioSource in _renderAudioSources)
+                    {
+                        AddRenderAudioSource(audioSource);
+                    }
+                }
+                VirtualAudioSpeaker speaker = GetVirtualAudioSpeaker();
+                if(speaker != null)
+                {
+                    speaker.SetChannelMap(StatsParser.ChannelMap);
+                    _renderer.AddVirtualAudioSpeaker(speaker);
+                }
+                
+            }   
+        }
+
+        private VirtualAudioSpeaker GetVirtualAudioSpeaker()
+        {
+            switch(StatsParser.inboundAudioStreamChannelCount)
+            {
+                case 2:
+                    return virtualAudioSpeakers.Find( x => x.audioChannelType == VirtualSpeakerMode.Stereo);
+                case 6:
+                    VirtualAudioSpeaker speaker6 = virtualAudioSpeakers.Find( x => x.audioChannelType == VirtualSpeakerMode.Mode5point1);
+                    if(speaker6 == null)
+                    {
+                        GameObject obj = Instantiate (Resources.Load ("Five_One_Speaker") as GameObject, transform);
+                        speaker6 = obj.GetComponent<VirtualAudioSpeaker>();
+                    }
+                    return speaker6;
+                default:
+                    return null;
+            }
         }
 
         private void OnDestroy()
@@ -425,10 +465,6 @@ namespace Dolby.Millicast
                 AddVideoRenderTarget(image);
             }
 
-            foreach (var audioSource in _renderAudioSources)
-            {
-                AddRenderAudioSource(audioSource);
-            }
         }
 
 

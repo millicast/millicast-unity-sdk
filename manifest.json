@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "com.unity.webrtc": "https://github.com/CoSMoSoftware/com.unity.webrtc.git"
+  }
+}

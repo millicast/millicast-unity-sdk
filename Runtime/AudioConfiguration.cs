@@ -4,13 +4,6 @@ using System.Collections.Generic;
 using UnityEditor;
 namespace Dolby.Millicast
 {
-    public enum ChannelType
-    {
-        [InspectorName("Mono")]  MONO,
-        [InspectorName("Stereo")]  STEREO,
-        [InspectorName("5.1")]  FIVE_1,
-        [InspectorName("Custom")]  CUSTOM
-    }
 
     /// <summary>
     /// A Scriptable Object that can be used to configure Audio configuration details which will be used for Subscribing. 
@@ -26,29 +19,40 @@ namespace Dolby.Millicast
     [System.Serializable]
     public class AdvancedAudioConfig
     {
-        public ChannelType audioChannelType;
+        public VirtualSpeakerMode audioChannelType;
         public bool addSpeakers;
-        [DrawIf("audioChannelType", ChannelType.MONO)] public AudioSource speaker;
-        [DrawIf("audioChannelType", ChannelType.STEREO)] public StereoAudio StereoSpeakers;
-        [DrawIf("audioChannelType", ChannelType.FIVE_1)] public FiveOneAudio FiveOneAudioSpeakers;
-        [DrawIf("audioChannelType", ChannelType.CUSTOM)] public CustomAudio CustomAudioSpeakers;
-
+        [DrawIf("audioChannelType", VirtualSpeakerMode.Mono)] public AudioSource speaker;
+        [DrawIf("audioChannelType", VirtualSpeakerMode.Stereo)] public StereoAudio StereoSpeakers;
+        [DrawIf("audioChannelType", VirtualSpeakerMode.Mode5point1)] public FiveOneAudio FiveOneAudioSpeakers;
     }
     [System.Serializable]
     public class StereoAudio
     {
         public AudioSource _left;
         public AudioSource _right;
+        public AudioSource[] getSpeakers()
+        {
+           AudioSource[] speakers =  {_left, _right};
+           return speakers;
+        }
     }
     [System.Serializable]
     public class FiveOneAudio
     {
         public AudioSource _left;
-        public AudioSource _right;
-        public AudioSource _center;
         public AudioSource _surroundLeft;
+        public AudioSource _right;
+        public AudioSource _lfe;
         public AudioSource _surroundRight;
+        public AudioSource _center;
+
+        public AudioSource[] getSpeakers()
+        {
+           AudioSource[] speakers =  {_left, _surroundLeft, _right, _center, _lfe, _surroundRight};
+           return speakers;
+        }
     }
+    
     [System.Serializable]
     public class CustomAudio
     {
