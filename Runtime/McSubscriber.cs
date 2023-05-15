@@ -16,7 +16,42 @@ namespace Dolby.Millicast
     {
 
     }
+    [System.Serializable]
+    public class ActiveSourceEvent : UnityEvent<McSubscriber, ProjectionData>
+    {
 
+    }
+
+    public class ProjectionData
+    {
+        public string sourceId;
+        public List<TrackData> tracks = new List<TrackData>();        
+    }
+
+    public class TrackData
+    {
+        public string TrackId;
+
+        public string Mid;
+
+        public string Media;
+    }
+
+    [System.Serializable]
+    public class MultiSourceMedia
+    {
+        public string streamId;
+
+        [Tooltip("Add your Materials here to rendering incoming video streams")]
+        public List<Material> _renderMaterials = new List<Material>();
+
+        [Tooltip("Add your RawImages here for rendering incoming video streams. For UI rendering")]
+        public List<RawImage> _renderImages = new List<RawImage>();
+        
+        [Tooltip("Add your AudioSources here to render incoming audio streams")]
+        public List<AudioSource> _renderAudioSources = new List<AudioSource>();
+       
+    }
     /// <summary>
     /// The Millicast subscriber class. Allows users to subscribe to Millicast streams.
     /// </summary>
@@ -119,9 +154,12 @@ namespace Dolby.Millicast
         {
             get => this._renderAudioSources;
         }
+        [SerializeField] private List<MultiSourceMedia> multSourceMediaList = new List<MultiSourceMedia>();
        // public AdvancedAudioConfig AdvancedAudioConfiguration;
         public List<VirtualAudioSpeaker> virtualAudioSpeakers;
         [SerializeField] private SimulcastEvent simulcastEvent;
+        [SerializeField] private ActiveSourceEvent activeSourceEvent;
+
         private SimulcastInfo simulCastInfo;
 
 
@@ -140,17 +178,25 @@ namespace Dolby.Millicast
 
         public delegate void DelegateOnConnectionError(McSubscriber subscribe, string message);
         public delegate void DelegateOnLayerEvent(McSubscriber subscribe, SimulcastInfo info);
+        public delegate void DelegateOnActiveEvent(McSubscriber subscribe, ProjectionData projectionData);
         /// <summary>
         /// Event called when the Simulcast Layers data event triggered.
         /// </summary>
         public event DelegateOnLayerEvent OnSimulcastlayerInfo;
+        public event DelegateOnActiveEvent OnActiveEventInfo;
         /// <summary>
         /// Event called when the there is a connection error to the service.
         /// </summary>
         public event DelegateOnConnectionError OnConnectionError;
         private int channelsCount = -1;
+        private List<ProjectionData> activeProjections = new List<ProjectionData>();
+        private ProjectionData activeProjection;
 
 
+        private MultiSourceMedia GetMediaRenderer(string sourceId)
+        {
+            return multSourceMediaList.Find(x => x.streamId.Equals(sourceId));
+        }
         /// <summary>
         /// Munge the remote sdp for subscribing.
         /// </summary>
@@ -215,6 +261,23 @@ namespace Dolby.Millicast
                 {
                     case ISignaling.Event.VIEWER_COUNT:
                         OnViewerCount?.Invoke(this, payload.viewercount);
+                        break;
+                    case ISignaling.Event.ACTIVE:
+                        Debug.Log("Active Event received:"+payload.sourceId);
+                        if(!string.IsNullOrEmpty(payload.sourceId))
+                        {
+                            ProjectionData projectionData = OnActiveEvent(payload.sourceId, payload.tracks);
+                            if(projectionData != null)
+                            {
+                                OnActiveEventInfo?.Invoke(this, projectionData);
+                                activeSourceEvent?.Invoke(this, projectionData);
+                            }  
+                        } 
+                        break;
+                    case ISignaling.Event.INACTIVE:
+                        Debug.Log("In Active Event received:"+payload.sourceId);
+                        if(!string.IsNullOrEmpty(payload.sourceId))
+                           OnInActiveEvent(payload.sourceId);
                         break;
                     case ISignaling.Event.LAYERS:
                         try
@@ -294,21 +357,66 @@ namespace Dolby.Millicast
             };
             _pc.OnTrack += (e) =>
             {
+                if(activeProjection != null)
+                    AddStream(activeProjection.sourceId);
                 if (e.Track is VideoStreamTrack track)
                 {
-                    Debug.Log("[Subscriber] Received video track");
+                    Debug.Log("[Subscriber] Received video track"+track.Id+","+activeProjection);
+                    if(activeProjection != null)
+                        AddVideoStreamMediaId(track.Id, "video");
                     track.OnVideoReceived += (tex) =>
                     {
-                          _renderer.SetTexture(tex);
+                        if(activeProjection == null)
+                            _renderer.SetTexture(tex);
+                        else
+                        {
+                            _renderer.SetTexture(tex, activeProjection.sourceId);
+                        }
                       };
                 }
                 if (e.Track is AudioStreamTrack audioTrack)
                 {
-                    Debug.Log("[Subscriber] Received audio track");
-                    _renderer.SetAudioTrack(audioTrack);
+                    Debug.Log("[Subscriber] Received audio track"+audioTrack.Id+","+activeProjection);
+                    if(activeProjection == null)
+                        _renderer.SetAudioTrack(audioTrack);
+                    else
+                    {
+                        AddVideoStreamMediaId(audioTrack.Id, "audio");
+                    }
                 }
             };
             _pc.SetUp(_signaling, _rtcConfiguration, true);
+        }
+
+        private void AddStream(string sourceId)
+        {
+            _renderer.AddStream(sourceId);
+            MultiSourceMedia media = GetMediaRenderer(sourceId);
+            if(media != null)
+            {
+                foreach (var item in media._renderImages)
+                {
+                     _renderer.AddVideoTarget(item, sourceId);
+                }
+                 foreach (var item in media._renderMaterials)
+                {
+                     _renderer.AddVideoTarget(item, sourceId);
+                }
+                foreach (var item in media._renderAudioSources)
+                {
+                     _renderer.AddAudioTarget(item, sourceId);
+                }
+            }
+        }
+
+        public void AddVideoStreamMediaId(string mediaId, string type)
+        {
+            Debug.Log("added stream:"+type+" = "+mediaId);
+            foreach (var item in activeProjection.tracks)
+            {
+                if(type.Equals(item.TrackId.ToLower()))
+                    item.Mid = mediaId;
+            }
         }
 
         void Awake()
@@ -356,6 +464,7 @@ namespace Dolby.Millicast
         void Start()
         {
             OnSimulcastlayerInfo += OnSimulcastLayerEvent;
+            OnActiveEventInfo += OnProjectInfoAvailable;
             if (_subscribeOnStart)
             {
                 Subscribe();
@@ -462,7 +571,7 @@ namespace Dolby.Millicast
 
             foreach (var image in _renderImages)
             {
-                AddVideoRenderTarget(image);
+                AddVideoRenderTarget(_renderImages[0]);
             }
 
         }
@@ -498,6 +607,7 @@ namespace Dolby.Millicast
           _renderMaterials.Clear();
           _renderer.Clear();
         }
+        
         /// <summary>
         /// Subscribe to a stream.
         /// </summary>
@@ -516,7 +626,7 @@ namespace Dolby.Millicast
             {
                 throw new Exception(GetCredentialsErrorMessage(credentials));
             }
-            AddRenderTargets();
+            //AddRenderTargets();
             UpdateMeshRendererMaterial();
 
             if (!isUpdateStarted)
@@ -616,6 +726,98 @@ namespace Dolby.Millicast
             }
             else
                 Debug.Log("Selected Layer not found");
+        }
+
+        private void OnProjectInfoAvailable(McSubscriber subscriberInstance, ProjectionData projectionData)
+        {
+            activeProjection = projectionData;
+            StartCoroutine(CheckForTracks());
+        }
+
+        private ProjectionData OnActiveEvent(string sourceId, List<TrackInfo> tracks)
+        {
+            ProjectionData projectionData = new ProjectionData();
+            projectionData.sourceId = sourceId;
+            foreach(var track in tracks)
+            {
+               TrackData data = new TrackData();
+                data.Media = track.media;
+                if(track.media.ToLower().Equals("audio"))
+                {
+                    _pc.AddTransceiver(TrackKind.Audio);
+                }
+                else if(track.media.ToLower().Equals("video"))
+                {
+                   _pc.AddTransceiver(TrackKind.Video);
+                }
+                data.TrackId = track.trackId;
+                projectionData.tracks.Add(data);
+            }
+            return projectionData;
+        }
+
+        IEnumerator CheckForTracks()
+        {
+            while(activeProjection == null || activeProjection.tracks == null || activeProjection.tracks.Count != 2)
+                yield return new WaitForEndOfFrame();
+            while(string.IsNullOrEmpty(activeProjection.tracks[0].Mid) || string.IsNullOrEmpty(activeProjection.tracks[1].Mid))
+                yield return new WaitForEndOfFrame();
+            Project(activeProjection);
+        }
+
+        private void OnInActiveEvent(string sourceId)
+        {
+            foreach(var projectionData in activeProjections)
+            {
+                if(!projectionData.sourceId.Equals(sourceId))
+                    return;
+                List<string> mids = new List<string>();
+                foreach (var item in projectionData.tracks)
+                {
+                    mids.Add(item.Mid);
+                }
+                UnProject(mids);
+                break;
+            }
+        }
+
+        private void UnProject(List<string> mids)
+        {
+             var unprojectData = new Dictionary<string, dynamic>();
+             unprojectData["mediaIds"] = mids.ToArray();
+            _signaling.Send(ISignaling.Event.UNPROJECT, unprojectData);
+        }
+
+         public void Project(ProjectionData projectionData)
+        {
+            if(projectionData == null || string.IsNullOrEmpty(projectionData.sourceId) ||  projectionData.tracks == null)
+                return;
+           
+            var projectionDatapayload = new Dictionary<string, dynamic>();
+            List<Dictionary<string, dynamic>> projectionsList = new List<Dictionary<string, dynamic>>();
+            foreach(var data in projectionData.tracks)
+            {
+                    var info = new Dictionary<string, dynamic>();
+                    info["trackid"] = data.TrackId;
+                    info["mediaId"] = data.Mid;
+                    info["media"] = data.Media;
+                    Debug.Log("Source Id:"+projectionData.sourceId+", track Id:"+data.TrackId+", mediaId:"+data.Mid+", media: "+data.Media);
+                    projectionsList.Add(info);
+            }
+            
+            projectionDatapayload["sourceId"] = projectionData.sourceId;
+            projectionDatapayload["mapping"] = projectionsList.ToArray();
+            activeProjections.Add(projectionData);
+            Debug.Log("project added:"+projectionData.sourceId);
+            _signaling.Send(ISignaling.Event.PROJECT, projectionDatapayload);
+        }
+
+        void OnDisable()
+        {
+            foreach (var projectdata in activeProjections)
+            {
+               OnInActiveEvent(projectdata.sourceId);
+            }
         }
     }
 

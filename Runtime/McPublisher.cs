@@ -103,6 +103,16 @@ namespace Dolby.Millicast
         }
 
         [SerializeField]
+        private string _sourceId;
+        /// <summary>
+        /// The stream name to publish to. 
+        /// </summary>
+        public string sourceid
+        {
+            get => _sourceId;
+            set => _sourceId = value;
+        }
+        [SerializeField]
         /// <summary>
         /// You have to set the publishing credentials
         /// before <c>Publish</c> is called.
@@ -211,9 +221,9 @@ namespace Dolby.Millicast
             var codecName = _options.videoCodec.ToString();
             payload["codec"] = codecName;
 
-            if (_options.multiSourceId?.Length != 0)
+            if (!string.IsNullOrEmpty(_sourceId))
             {
-                payload["sourceId"] = _options.multiSourceId;
+                payload["sourceId"] = _sourceId;
             }
 
             yield return _signaling?.Send(ISignaling.Event.PUBLISH, payload);

@@ -127,6 +127,7 @@ namespace Dolby.Millicast
           //TODO: We should separate both
           case "response":
           case "event":
+            Debug.Log("responsedata:"+ json);
             HandleEvent((SuccessServiceResponse)response);
             break;
           case "error":
@@ -146,6 +147,7 @@ namespace Dolby.Millicast
       switch (response.type)
       {
         case "response":
+          
           OnEvent?.Invoke(ISignaling.Event.RESPONSE, response.data);
           break;
         case "event":
@@ -234,6 +236,12 @@ namespace Dolby.Millicast
           break;
          case ISignaling.Event.SELECT:
           payload = PreparePayload("select", ref data);
+          break;
+         case ISignaling.Event.PROJECT:
+          payload = PreparePayload("project", ref data);
+          break;
+          case ISignaling.Event.UNPROJECT:
+          payload = PreparePayload("unproject", ref data);
           break;
         default:
           //TODO: Implement other events

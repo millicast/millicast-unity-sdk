@@ -26,6 +26,14 @@ namespace Dolby.Millicast
     {
       _materialRenderer.AddMaterial(material);
     }
+    public void AddVideoTarget(RawImage image, string sourceId)
+    {
+      _rawImageRenderer.AddRawImage(image, sourceId);
+    }
+    public void AddVideoTarget(Material material, string sourceId)
+    {
+      _materialRenderer.AddMaterial(material, sourceId);
+    }
 
     public void RemoveVideoTarget(RawImage image)
     {
@@ -34,6 +42,14 @@ namespace Dolby.Millicast
     public void RemoveVideoTarget(Material material)
     {
       _materialRenderer.RemoveMaterial(material);
+    }
+    public void RemoveVideoTarget(RawImage image, string sourceId)
+    {
+      _rawImageRenderer.RemoveRawImage(image, sourceId);
+    }
+    public void RemoveVideoTarget(Material material, string sourceId)
+    {
+      _materialRenderer.RemoveMaterial(material, sourceId);
     }
 
     public void AddAudioTarget(AudioSource audioSource)
@@ -44,10 +60,24 @@ namespace Dolby.Millicast
     {
       _audioSourceRenderer.AddVirtualAudioSpeaker(virtualSpeaker);
     }
+    public void AddAudioTarget(AudioSource audioSource, string streamId)
+    {
+      _audioSourceRenderer.AddAudioSource(audioSource);
+    }
+     public void AddVirtualAudioSpeaker(VirtualAudioSpeaker virtualSpeaker, string streamId)
+    {
+      _audioSourceRenderer.AddVirtualAudioSpeaker(virtualSpeaker);
+    }
 
     public void RemoveAudioTarget(AudioSource audioSource)
     {
       _audioSourceRenderer.RemoveAudioSource(audioSource);
+    }
+
+    public void AddStream(string streamId)
+    {
+      _materialRenderer.AddMultiSourceStream(streamId);
+      _rawImageRenderer.AddMultiSourceStream(streamId);
     }
 
 
@@ -55,6 +85,11 @@ namespace Dolby.Millicast
     {
       _materialRenderer.SetRenderTexture(texture);
       _rawImageRenderer.SetRenderTexture(texture);
+    }
+    public void SetTexture(Texture texture, string sourceId)
+    {
+      _materialRenderer.SetRenderTexture(texture, sourceId);
+      _rawImageRenderer.SetRenderTexture(texture, sourceId);
     }
 
     public void SetAudioTrack(AudioStreamTrack track)

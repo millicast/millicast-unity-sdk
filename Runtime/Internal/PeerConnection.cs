@@ -392,6 +392,11 @@ namespace Dolby.Millicast
       }
     }
 
+    public string AddTransceiver(TrackKind kind)
+    {
+      return _pc.AddTransceiver(kind).Mid;
+    }
+
     public void Disconnect()
     {
       _pc?.Close();
