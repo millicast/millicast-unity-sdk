@@ -104,6 +104,16 @@ namespace Dolby.Millicast
         }
 
         [SerializeField]
+        private string _sourceId;
+        /// <summary>
+        /// The stream name to publish to. 
+        /// </summary>
+        public string sourceid
+        {
+            get => _sourceId;
+            set => _sourceId = value;
+        }
+        [SerializeField]
         /// <summary>
         /// You have to set the publishing credentials
         /// before <c>Publish</c> is called.
@@ -238,7 +248,11 @@ namespace Dolby.Millicast
             var codecName = _options.videoCodec.ToString();
             payload["codec"] = codecName;
 
+<<<<<<< HEAD
             if (enableMultiSource && !string.IsNullOrEmpty(_sourceId))
+=======
+            if (!string.IsNullOrEmpty(_sourceId))
+>>>>>>> 429dda7 (added multi source support (wip))
             {
                 payload["sourceId"] = _sourceId;
             }
