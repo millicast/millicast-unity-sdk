@@ -367,19 +367,19 @@ namespace Dolby.Millicast
             if(StatsParser.inboundAudioStreamChannelCount > 0 && channelsCount != StatsParser.inboundAudioStreamChannelCount)
             {
                 channelsCount = StatsParser.inboundAudioStreamChannelCount;
-                if(channelsCount == 2)
-                {
-                    foreach (var audioSource in _renderAudioSources)
-                    {
-                        AddRenderAudioSource(audioSource);
-                    }
-                }
                 VirtualAudioSpeaker speaker = GetVirtualAudioSpeaker();
                 if(speaker != null)
                 {
                     speaker.SetChannelMap(StatsParser.ChannelMap);
                     _renderer.AddVirtualAudioSpeaker(speaker);
                 }
+                else if(channelsCount == 2)
+                {
+                    foreach (var audioSource in _renderAudioSources)
+                    {
+                        AddRenderAudioSource(audioSource);
+                    }
+                }                
                 
             }   
         }
