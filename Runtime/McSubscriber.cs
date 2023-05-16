@@ -112,14 +112,14 @@ namespace Dolby.Millicast
         /// Manually set the audio sources to render to. This
         /// is used when you want utilise the Unity Inspector UI.
         /// </summary>
-        [Tooltip("Add your AudioSources here to render incoming audio streams")]
+        [Tooltip("Add your AudioSources here to render incoming audio streams, will work only for stereo incoming audio types.")]
         [SerializeField]
         private List<AudioSource> _renderAudioSources = new List<AudioSource>();
         public List<AudioSource> renderAudioSources
         {
             get => this._renderAudioSources;
         }
-       // public AdvancedAudioConfig AdvancedAudioConfiguration;
+        [Tooltip("Adding virtual audio source for stereo stream type will ignore Render Audio Sources.")]
         public List<VirtualAudioSpeaker> virtualAudioSpeakers;
         [SerializeField] private SimulcastEvent simulcastEvent;
         private SimulcastInfo simulCastInfo;
@@ -364,14 +364,14 @@ namespace Dolby.Millicast
         private void Update()
         {
             _signaling?.Dispatch();
-            if(StatsParser.inboundAudioStreamChannelCount > 0 && channelsCount != StatsParser.inboundAudioStreamChannelCount)
+            if(_pc != null && _pc.getInboundCannelCount > 0 && channelsCount != _pc.getInboundCannelCount)
             {
-                channelsCount = StatsParser.inboundAudioStreamChannelCount;
+                channelsCount = _pc.getInboundCannelCount;
                 VirtualAudioSpeaker speaker = GetVirtualAudioSpeaker();
                 if(speaker != null)
                 {
-                    speaker.SetChannelMap(StatsParser.ChannelMap);
-                    _renderer.AddVirtualAudioSpeaker(speaker);
+                    speaker.SetChannelMap(_pc.getChannelMap);
+                    _renderer.AddVirtualAudioSpeaker(speaker, _pc.getInboundCannelCount);
                 }
                 else if(channelsCount == 2)
                 {
@@ -386,7 +386,7 @@ namespace Dolby.Millicast
 
         private VirtualAudioSpeaker GetVirtualAudioSpeaker()
         {
-            switch(StatsParser.inboundAudioStreamChannelCount)
+            switch(_pc.getInboundCannelCount)
             {
                 case 2:
                     return virtualAudioSpeakers.Find( x => x.audioChannelType == VirtualSpeakerMode.Stereo);

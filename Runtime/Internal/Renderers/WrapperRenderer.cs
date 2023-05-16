@@ -40,9 +40,9 @@ namespace Dolby.Millicast
     {
       _audioSourceRenderer.AddAudioSource(audioSource);
     }
-     public void AddVirtualAudioSpeaker(VirtualAudioSpeaker virtualSpeaker)
+     public void AddVirtualAudioSpeaker(VirtualAudioSpeaker virtualSpeaker, int channelCount)
     {
-      _audioSourceRenderer.AddVirtualAudioSpeaker(virtualSpeaker);
+      _audioSourceRenderer.AddVirtualAudioSpeaker(virtualSpeaker, channelCount);
     }
 
     public void RemoveAudioTarget(AudioSource audioSource)
