@@ -62,11 +62,11 @@ namespace Dolby.Millicast
     }
     public void AddAudioTarget(AudioSource audioSource, string streamId)
     {
-      _audioSourceRenderer.AddAudioSource(audioSource);
+      _audioSourceRenderer.AddAudioSource(audioSource, streamId);
     }
      public void AddVirtualAudioSpeaker(VirtualAudioSpeaker virtualSpeaker, string streamId)
     {
-      _audioSourceRenderer.AddVirtualAudioSpeaker(virtualSpeaker);
+      _audioSourceRenderer.AddVirtualAudioSpeaker(virtualSpeaker, streamId);
     }
 
     public void RemoveAudioTarget(AudioSource audioSource)
@@ -74,10 +74,16 @@ namespace Dolby.Millicast
       _audioSourceRenderer.RemoveAudioSource(audioSource);
     }
 
+    public void RemoveAudioTarget(AudioSource audioSource, string sourceId)
+    {
+      _audioSourceRenderer.RemoveAudioSource(audioSource, sourceId);
+    }
+
     public void AddStream(string streamId)
     {
       _materialRenderer.AddMultiSourceStream(streamId);
       _rawImageRenderer.AddMultiSourceStream(streamId);
+      _audioSourceRenderer.AddMultiSourceStream(streamId);
     }
 
 
@@ -90,6 +96,10 @@ namespace Dolby.Millicast
     {
       _materialRenderer.SetRenderTexture(texture, sourceId);
       _rawImageRenderer.SetRenderTexture(texture, sourceId);
+    }
+    public void SetAudioTrack(AudioStreamTrack track, string sourceId)
+    {
+      _audioSourceRenderer.SetRenderAudioTrack(track, sourceId);
     }
 
     public void SetAudioTrack(AudioStreamTrack track)

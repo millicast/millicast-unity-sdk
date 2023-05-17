@@ -36,22 +36,7 @@ namespace Dolby.Millicast
 
         public string Media;
     }
-
-    [System.Serializable]
-    public class MultiSourceMedia
-    {
-        public string streamId;
-
-        [Tooltip("Add your Materials here to rendering incoming video streams")]
-        public List<Material> _renderMaterials = new List<Material>();
-
-        [Tooltip("Add your RawImages here for rendering incoming video streams. For UI rendering")]
-        public List<RawImage> _renderImages = new List<RawImage>();
-        
-        [Tooltip("Add your AudioSources here to render incoming audio streams")]
-        public List<AudioSource> _renderAudioSources = new List<AudioSource>();
-       
-    }
+    
     /// <summary>
     /// The Millicast subscriber class. Allows users to subscribe to Millicast streams.
     /// </summary>
@@ -71,7 +56,6 @@ namespace Dolby.Millicast
         // Those source ids may not be set.
         private Dictionary<string, RawImage> _receiveImages;
 
-        private WrapperRenderer _renderer = new WrapperRenderer();
         /// <summary>
         /// This boolean indicates whether the subscriber
         /// is currently subscribing to a stream.
@@ -106,57 +90,12 @@ namespace Dolby.Millicast
         [Tooltip("Subscribe as soon as the script starts")]
         private bool _subscribeOnStart = false;
 
-        /// <summary>
-        /// If the current object contains a mesh renderer,
-        /// enabling this will rename the mesh renderer's material
-        /// to the stream name, and render the incoming stream on it.
-        /// </summary>
-        [SerializeField]
-        [Tooltip("Enabling will render incoming stream onto mesh renderer's material, if it exists.")]
-        private bool _updateMeshRendererMaterial = false;
 
-        [SerializeField]
-        [Tooltip("Add your Materials here to rendering incoming video streams")]
-        private List<Material> _renderMaterials = new List<Material>();
-        /// <summary>
-        /// Manually add materials to render the incoming video stream on.
-        /// is used when you want utilise the Unity Inspector UI. Use this
-        /// only to render onto 3D objects.
-        /// </summary>
-        public List<Material> renderMaterials
-        {
-            get => this._renderMaterials;
-        }
+        [SerializeField] public MediaRenderers defaultMediaRenderer;
 
-
-        [SerializeField]
-        [Tooltip("Add your RawImages here for rendering incoming video streams. For UI rendering")]
-        private List<RawImage> _renderImages = new List<RawImage>();
-        /// <summary>
-        /// Manually add images to render the incoming video stream on.
-        /// is used when you want utilise the Unity Inspector UI. This
-        /// is to render in a GUI application only.
-        /// </summary>
-        public List<RawImage> renderImages
-        {
-            get => _renderImages;
-        }
-
-
-        /// <summary>
-        /// Manually set the audio sources to render to. This
-        /// is used when you want utilise the Unity Inspector UI.
-        /// </summary>
-        [Tooltip("Add your AudioSources here to render incoming audio streams")]
-        [SerializeField]
-        private List<AudioSource> _renderAudioSources = new List<AudioSource>();
-        public List<AudioSource> renderAudioSources
-        {
-            get => this._renderAudioSources;
-        }
-        [SerializeField] private List<MultiSourceMedia> multSourceMediaList = new List<MultiSourceMedia>();
+        [SerializeField] private List<MultiSourceMediaRenderer> multSourceMediaList = new List<MultiSourceMediaRenderer>();
        // public AdvancedAudioConfig AdvancedAudioConfiguration;
-        public List<VirtualAudioSpeaker> virtualAudioSpeakers;
+       
         [SerializeField] private SimulcastEvent simulcastEvent;
         [SerializeField] private ActiveSourceEvent activeSourceEvent;
 
@@ -193,9 +132,9 @@ namespace Dolby.Millicast
         private ProjectionData activeProjection;
 
 
-        private MultiSourceMedia GetMediaRenderer(string sourceId)
+        private MultiSourceMediaRenderer GetMediaRenderer(string sourceId)
         {
-            return multSourceMediaList.Find(x => x.streamId.Equals(sourceId));
+            return multSourceMediaList.Find(x => x.sourceId.Equals(sourceId));
         }
         /// <summary>
         /// Munge the remote sdp for subscribing.
@@ -357,8 +296,7 @@ namespace Dolby.Millicast
             };
             _pc.OnTrack += (e) =>
             {
-                if(activeProjection != null)
-                    AddStream(activeProjection.sourceId);
+                
                 if (e.Track is VideoStreamTrack track)
                 {
                     Debug.Log("[Subscriber] Received video track"+track.Id+","+activeProjection);
@@ -366,52 +304,61 @@ namespace Dolby.Millicast
                         AddVideoStreamMediaId(track.Id, "video");
                     track.OnVideoReceived += (tex) =>
                     {
-                        if(activeProjection == null)
-                            _renderer.SetTexture(tex);
-                        else
-                        {
-                            _renderer.SetTexture(tex, activeProjection.sourceId);
-                        }
-                      };
+                        Debug.Log("[Subscriber] Received video track texture");
+                        SetTexture(tex);
+                    };
                 }
                 if (e.Track is AudioStreamTrack audioTrack)
                 {
-                    Debug.Log("[Subscriber] Received audio track"+audioTrack.Id+","+activeProjection);
-                    if(activeProjection == null)
-                        _renderer.SetAudioTrack(audioTrack);
-                    else
-                    {
+                    if(activeProjection != null)
                         AddVideoStreamMediaId(audioTrack.Id, "audio");
-                    }
+                   SetAudioTrack(audioTrack);
                 }
             };
             _pc.SetUp(_signaling, _rtcConfiguration, true);
         }
 
-        private void AddStream(string sourceId)
+        private void SetAudioTrack(AudioStreamTrack track)
         {
-            _renderer.AddStream(sourceId);
-            MultiSourceMedia media = GetMediaRenderer(sourceId);
-            if(media != null)
+            if(activeProjection == null)
+                defaultMediaRenderer.SetAudioTrack(track);
+            else
             {
-                foreach (var item in media._renderImages)
+                MultiSourceMediaRenderer media = GetMediaRenderer(activeProjection.sourceId);
+                if(media != null)
+                    media.SetAudioTrack(track);
+            }
+        }
+
+        private void SetTexture(Texture texture)
+        {
+            if(activeProjection == null)
+                defaultMediaRenderer.SetTexture(texture);
+            else
+            {
+                MultiSourceMediaRenderer media = GetMediaRenderer(activeProjection.sourceId);
+                if(media != null)
                 {
-                     _renderer.AddVideoTarget(item, sourceId);
-                }
-                 foreach (var item in media._renderMaterials)
-                {
-                     _renderer.AddVideoTarget(item, sourceId);
-                }
-                foreach (var item in media._renderAudioSources)
-                {
-                     _renderer.AddAudioTarget(item, sourceId);
+                    media.SetTexture(texture);
                 }
             }
         }
 
+        private void AddStream(string sourceId)
+        {
+            MultiSourceMediaRenderer media = GetMediaRenderer(sourceId);
+            if(media != null)
+            {
+                media.AddStream(sourceId);
+                media.AddRenderTargets();
+                media.AddAudioRenderTargets();
+            }
+            else
+                Debug.LogError("Failed to get mediaRenderer fr the source:"+sourceId);
+        }
+
         public void AddVideoStreamMediaId(string mediaId, string type)
         {
-            Debug.Log("added stream:"+type+" = "+mediaId);
             foreach (var item in activeProjection.tracks)
             {
                 if(type.Equals(item.TrackId.ToLower()))
@@ -478,16 +425,25 @@ namespace Dolby.Millicast
                 channelsCount = StatsParser.inboundAudioStreamChannelCount;
                 if(channelsCount == 2)
                 {
-                    foreach (var audioSource in _renderAudioSources)
+                    
+                    if(activeProjection != null)
                     {
-                        AddRenderAudioSource(audioSource);
+                        MultiSourceMediaRenderer media = GetMediaRenderer(activeProjection.sourceId);
+                        if(media != null)
+                        {
+                            media.AddRenderAudioSource();
+                        }
+                    }
+                    else
+                    {
+                        defaultMediaRenderer.AddRenderAudioSource();
                     }
                 }
                 VirtualAudioSpeaker speaker = GetVirtualAudioSpeaker();
                 if(speaker != null)
                 {
                     speaker.SetChannelMap(StatsParser.ChannelMap);
-                    _renderer.AddVirtualAudioSpeaker(speaker);
+                    defaultMediaRenderer.AddVirtualAudioSpeaker(speaker);
                 }
                 
             }   
@@ -498,9 +454,9 @@ namespace Dolby.Millicast
             switch(StatsParser.inboundAudioStreamChannelCount)
             {
                 case 2:
-                    return virtualAudioSpeakers.Find( x => x.audioChannelType == VirtualSpeakerMode.Stereo);
+                    return defaultMediaRenderer.virtualAudioSpeakers.Find( x => x.audioChannelType == VirtualSpeakerMode.Stereo);
                 case 6:
-                    VirtualAudioSpeaker speaker6 = virtualAudioSpeakers.Find( x => x.audioChannelType == VirtualSpeakerMode.Mode5point1);
+                    VirtualAudioSpeaker speaker6 = defaultMediaRenderer.virtualAudioSpeakers.Find( x => x.audioChannelType == VirtualSpeakerMode.Mode5point1);
                     if(speaker6 == null)
                     {
                         GameObject obj = Instantiate (Resources.Load ("Five_One_Speaker") as GameObject, transform);
@@ -562,19 +518,7 @@ namespace Dolby.Millicast
             return message + " can't be Empty. Please configure in Credentials Scriptable Object";
         }
 
-        private void AddRenderTargets()
-        {
-            foreach (var material in _renderMaterials)
-            {
-                AddVideoRenderTarget(material);
-            }
-
-            foreach (var image in _renderImages)
-            {
-                AddVideoRenderTarget(_renderImages[0]);
-            }
-
-        }
+       
 
 
         /// <summary>
@@ -583,31 +527,16 @@ namespace Dolby.Millicast
         /// </summary>
         public void UpdateMeshRendererMaterial()
         {
-            if (_updateMeshRendererMaterial && !string.IsNullOrEmpty(streamName))
-            {
-                // If the current object contains a mesh renderer, we will 
-                // update its material with the incoming stream.
-                MeshRenderer meshRenderer = gameObject.GetComponent<MeshRenderer>();
-                if (meshRenderer != null)
-                {
-                    Material mat = meshRenderer.materials[0];
-                    if (mat != null)
-                    {
-                        mat.name = streamName;
-                        AddVideoRenderTarget(mat);
-                    }
-                }
-            }
+            if(activeProjection == null)
+                defaultMediaRenderer.UpdateMeshRendererMaterial(streamName, this.gameObject);
         }
         /// <summary>
         /// This will clear all render material Targets for the incoming video stream
         /// </summary>
         public void ClearRenderMaterials()
         {
-          _renderMaterials.Clear();
-          _renderer.Clear();
+          defaultMediaRenderer.ClearRenderMaterials();
         }
-        
         /// <summary>
         /// Subscribe to a stream.
         /// </summary>
@@ -626,7 +555,7 @@ namespace Dolby.Millicast
             {
                 throw new Exception(GetCredentialsErrorMessage(credentials));
             }
-            //AddRenderTargets();
+            defaultMediaRenderer.AddRenderTargets();
             UpdateMeshRendererMaterial();
 
             if (!isUpdateStarted)
@@ -647,66 +576,25 @@ namespace Dolby.Millicast
             Reset();
         }
 
-        /// <summary>
-        /// Add a material to display the incoming remote video stream on. The material's main texture
-        /// will be replaced with the remote video stream texture when it is available. Using this
-        /// to replace a GUI component's material will not work. Use the RawImage overload instead.  
-        /// </summary>
-        /// <param name="material">A Unity <see cref="Material"/>.</param>
-        public void AddVideoRenderTarget(Material material)
-        {
-            _renderer.AddVideoTarget(material);
-        }
-
-        /// <summary>
-        /// Stop rendering the remote video stream on the previously given material
-        /// </summary>
-        /// <param name="material">A Unity <see cref="Material"/>. </param>
-        public void RemoveVideoRenderTarget(Material material)
-        {
-            _renderer.RemoveVideoTarget(material);
-        }
-
-        /// <summary>
-        /// Stop rendering the remote video stream on the previously given RawImage.
-        /// </summary>
-        /// <param name="image">A Unity <see cref="RawImage"/>. </param>
-        public void RemoveVideoRenderTarget(RawImage image)
-        {
-            _renderer.RemoveVideoTarget(image);
-        }
-
-        /// <summary>
-        /// Add a UI RawImage to display the remote video stream on. The RawImage's texture
-        /// will be replaced with the remote video stream texture when it is available. Use this
-        /// when you want to use render the remote stream in a GUI.
-        /// </summary>
-        /// <param name="image">A Unity <see cref="RawImage"/>.</param>
-        public void AddVideoRenderTarget(RawImage image)
-        {
-            _renderer.AddVideoTarget(image);
-        }
-
-        /// <summary>
-        /// Add an audio source that will render the received audio stream.
-        /// </summary>
-        /// <param name="source"> A Unity <see cref="AudioSource"/> instance. </param>
-        public void AddRenderAudioSource(AudioSource source)
-        {
-            _renderer.AddAudioTarget(source);
-        }
-
-        /// <summary>
-        /// Remove an audio source so that it stops rendering.
-        /// </summary>
-        /// <param name="source"> A previously added Unity <see cref="AudioSource"/> instance.</param>
-        public void RemoveRenderAudioSource(AudioSource source)
-        {
-            _renderer.RemoveAudioTarget(source);
-        }
+       
         private SimulcastInfo GetSimulcastInfo()
         {
             return simulCastInfo;
+        }
+
+        public void AddVideoRenderTarget(Material material)
+        {
+            defaultMediaRenderer.AddVideoRenderTarget(material);
+        }
+
+        public void AddVideoRenderTarget(RawImage image)
+        {
+            defaultMediaRenderer.AddVideoRenderTarget(image);
+        }
+
+         public void AddRenderAudioSource(AudioSource source)
+        {
+            defaultMediaRenderer.AddRenderAudioSource(source);
         }
         /// <summary>
         /// Set a simulcast layer
@@ -732,12 +620,14 @@ namespace Dolby.Millicast
         {
             activeProjection = projectionData;
             StartCoroutine(CheckForTracks());
+            //Project(activeProjection);
         }
 
         private ProjectionData OnActiveEvent(string sourceId, List<TrackInfo> tracks)
         {
             ProjectionData projectionData = new ProjectionData();
             projectionData.sourceId = sourceId;
+            AddStream(sourceId);
             foreach(var track in tracks)
             {
                TrackData data = new TrackData();
@@ -762,6 +652,27 @@ namespace Dolby.Millicast
                 yield return new WaitForEndOfFrame();
             while(string.IsNullOrEmpty(activeProjection.tracks[0].Mid) || string.IsNullOrEmpty(activeProjection.tracks[1].Mid))
                 yield return new WaitForEndOfFrame();
+
+            foreach(var trans in _pc.GetTransceivers())
+            {
+                if(string.IsNullOrEmpty(trans.Mid))
+                    continue;
+                if(trans.Receiver.Track is AudioStreamTrack audioTrack)
+                {
+                    var audTrackData = activeProjection.tracks.Find(x=> x.Media.Equals("audio"));
+                    if(audTrackData != null)
+                        audTrackData.Mid = trans.Mid;
+                    Debug.Log("MID for audio:"+trans.Mid);
+                }  
+                if(trans.Receiver.Track is VideoStreamTrack videoTrack)
+                {
+                    var vidTrackData = activeProjection.tracks.Find(x=> x.Media.Equals("video"));
+                    if(vidTrackData != null)
+                        vidTrackData.Mid = trans.Mid;
+                    Debug.Log("MID for audio:"+trans.Mid);
+                }    
+
+            }
             Project(activeProjection);
         }
 
@@ -794,15 +705,15 @@ namespace Dolby.Millicast
                 return;
            
             var projectionDatapayload = new Dictionary<string, dynamic>();
-            List<Dictionary<string, dynamic>> projectionsList = new List<Dictionary<string, dynamic>>();
+            List<Dictionary<string, string>> projectionsList = new List<Dictionary<string, string>>();
             foreach(var data in projectionData.tracks)
             {
-                    var info = new Dictionary<string, dynamic>();
-                    info["trackid"] = data.TrackId;
-                    info["mediaId"] = data.Mid;
-                    info["media"] = data.Media;
-                    Debug.Log("Source Id:"+projectionData.sourceId+", track Id:"+data.TrackId+", mediaId:"+data.Mid+", media: "+data.Media);
-                    projectionsList.Add(info);
+                var info = new Dictionary<string, string>();
+                info["trackid"] = data.TrackId;
+                info["mediaId"] = data.Mid;
+                info["media"] = data.Media;
+                Debug.Log("Source Id:"+projectionData.sourceId+", track Id:"+data.TrackId+", mediaId:"+data.Mid+", media: "+data.Media);
+                projectionsList.Add(info);
             }
             
             projectionDatapayload["sourceId"] = projectionData.sourceId;

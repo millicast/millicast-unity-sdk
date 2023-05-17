@@ -133,7 +133,7 @@ namespace Dolby.Millicast
       MultiSourceImage sourceImage = multiSourceImages.Find(x => x.sourceId.Equals(sourceId));
         if(sourceImage == null)
           return;
-        sourceImage.SetRenderTexture(texture);
+      sourceImage.SetRenderTexture(texture);
     }
     public void Clear()
     {

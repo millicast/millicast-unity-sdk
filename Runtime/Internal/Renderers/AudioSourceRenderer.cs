@@ -69,7 +69,6 @@ namespace Dolby.Millicast
         s.loop = true;
         s.Play();
       }
-
       _renderAudioTrack = track;
     }
 
