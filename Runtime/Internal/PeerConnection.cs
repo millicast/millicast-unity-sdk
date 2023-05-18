@@ -187,6 +187,7 @@ namespace Dolby.Millicast
 
     private void OnTrackEvent(RTCTrackEvent e)
     {
+      Debug.Log("******************On Track Received*******************");
       OnTrack?.Invoke(e);
     }
 
@@ -392,10 +393,11 @@ namespace Dolby.Millicast
       }
     }
 
-    public string AddTransceiver(TrackKind kind)
+    public void AddTransceiver(TrackKind kind, RTCRtpTransceiverInit init = null)
     {
-      return _pc.AddTransceiver(kind).Mid;
+      _pc.AddTransceiver(kind, init);
     }
+
 
     public void Disconnect()
     {
