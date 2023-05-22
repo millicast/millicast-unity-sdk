@@ -87,6 +87,8 @@ namespace Unity.WebRTC
             private List<AudioCustomFilter> _filters = new List<AudioCustomFilter>();
             private AudioStreamTrack _track;
             private int inboundAudioChannelCount = -1;
+
+            private int sampleRate = 48000;
             private int audioBufferSize = 1024;
             AudioSplitHandler audioHandler;
             public void SetChannelCount(int count)
@@ -94,6 +96,8 @@ namespace Unity.WebRTC
                 if(inboundAudioChannelCount != count)
                 {
                     audioBufferSize = AudioSettings.GetConfiguration().dspBufferSize;
+                    sampleRate = AudioSettings.GetConfiguration().sampleRate;
+
                     inboundAudioChannelCount = count;
                     audioHandler = new AudioSplitHandler(inboundAudioChannelCount, audioBufferSize);
                 }
@@ -153,6 +157,15 @@ namespace Unity.WebRTC
                     _filter.onAudioRead += SetTrackData;
                     _filter.sender = false;
                     _filter.channelIndex = index;
+                    AudioClip clip = AudioClip.Create("Channel" + index, sampleRate, 1, sampleRate, false);
+
+                    float[] dummyData = new float[sampleRate];
+                    for(int i = 0; i < dummyData.Length; i++)
+                    {
+                        dummyData[i] = 1.0f;
+                    }
+                    clip.SetData(dummyData, 0);
+                    source.clip = clip;
                     source.Play();
                 }
             }

@@ -8,8 +8,8 @@ namespace Dolby.Millicast
 {
     public class StatsParser 
     {
-        public static int inboundAudioStreamChannelCount = -1;
-        public static int[] ChannelMap;
+        public int inboundAudioStreamChannelCount = -1;
+        public int[] ChannelMap;
         private RTCPeerConnection peerConnection;
         string pattern = @"channel_mapping=(\d+(,\d+)*)";
         //string codecid = "CIT01_98_channel_mapping=0,4,1,2,3,5;coupled_streams=2;minptime=10;num_streams=4;useinbandfec=1";

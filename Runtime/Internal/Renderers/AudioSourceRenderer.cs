@@ -37,18 +37,18 @@ namespace Dolby.Millicast
       }
     }
 
-    public void AddVirtualAudioSpeaker(VirtualAudioSpeaker speaker)
+    public void AddVirtualAudioSpeaker(VirtualAudioSpeaker speaker, int channelCount)
     {
-        RefreshAudioTrackWithIndex(speaker.getAudioSpeakers());
+        RefreshAudioTrackWithIndex(speaker.getAudioSpeakers(), channelCount);
     }
-    private void RefreshAudioTrackWithIndex(AudioSource[] audiosources)
+    private void RefreshAudioTrackWithIndex(AudioSource[] audiosources, int channelCount)
     {
       if(_renderAudioTrack != null && audiosources != null && audiosources.Length > 0)
        {
           int index = 0;
           foreach (var s in audiosources)
           {
-            s.SetTrack(_renderAudioTrack, index++, StatsParser.inboundAudioStreamChannelCount);
+            s.SetTrack(_renderAudioTrack, index++, channelCount);
             s.loop = true;
             s.Play();
           }
