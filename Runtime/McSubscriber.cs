@@ -373,7 +373,7 @@ namespace Dolby.Millicast
                     speaker.SetChannelMap(_pc.getChannelMap);
                     _renderer.AddVirtualAudioSpeaker(speaker, _pc.getInboundCannelCount);
                 }
-                else if(channelsCount == 2)
+                else
                 {
                     foreach (var audioSource in _renderAudioSources)
                     {
@@ -386,7 +386,14 @@ namespace Dolby.Millicast
 
         private VirtualAudioSpeaker GetVirtualAudioSpeaker()
         {
-            switch(_pc.getInboundCannelCount)
+            // In the case where the hardware is capable of playing
+            // the incoming number of channels, no need to virtualize. 
+            if (virtualAudioSpeakers.Count == 0 &&
+                AudioHelpers.GetAudioSpeakerModeIntFromEnum(AudioSettings.GetConfiguration().speakerMode) > _pc.getInboundCannelCount)
+            {
+                return null;
+            }
+            switch (_pc.getInboundCannelCount)
             {
                 case 2:
                     return virtualAudioSpeakers.Find( x => x.audioChannelType == VirtualSpeakerMode.Stereo);
@@ -394,7 +401,7 @@ namespace Dolby.Millicast
                     VirtualAudioSpeaker speaker6 = virtualAudioSpeakers.Find( x => x.audioChannelType == VirtualSpeakerMode.Mode5point1);
                     if(speaker6 == null)
                     {
-                        GameObject obj = Instantiate (Resources.Load ("Five_One_Speaker") as GameObject, transform);
+                        GameObject obj = Instantiate (Resources.Load("Five_One_Speaker") as GameObject, transform);
                         speaker6 = obj.GetComponent<VirtualAudioSpeaker>();
                     }
                     return speaker6;
