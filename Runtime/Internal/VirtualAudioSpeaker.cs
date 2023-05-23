@@ -8,6 +8,7 @@ namespace Dolby.Millicast
     {
         Mono,
         Stereo,
+        [InspectorName("5.1")]
         Mode5point1
     }
     public class VirtualAudioSpeaker : MonoBehaviour
