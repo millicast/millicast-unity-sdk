@@ -34,11 +34,7 @@ namespace Dolby.Millicast
     {
         RefreshAudioTrackWithIndex(speaker.getAudioSpeakers(channelCount), channelCount);
     }
-<<<<<<< HEAD
     private void RefreshAudioTrackWithIndex(AudioSource[] audiosources, int channelCount)
-=======
-    public void RefreshAudioTrackWithIndex(AudioSource[] audiosources)
->>>>>>> 429dda7 (added multi source support (wip))
     {
       if(_renderAudioTrack != null && audiosources != null && audiosources.Length > 0)
        {
