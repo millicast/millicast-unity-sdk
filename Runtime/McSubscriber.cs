@@ -373,7 +373,7 @@ namespace Dolby.Millicast
                     speaker.SetChannelMap(_pc.getChannelMap);
                     _renderer.AddVirtualAudioSpeaker(speaker, _pc.getInboundCannelCount);
                 }
-                else if(channelsCount == 2)
+                else
                 {
                     foreach (var audioSource in _renderAudioSources)
                     {
@@ -386,15 +386,27 @@ namespace Dolby.Millicast
 
         private VirtualAudioSpeaker GetVirtualAudioSpeaker()
         {
-            switch(_pc.getInboundCannelCount)
+            // In the case where the hardware is capable of playing
+            // the incoming number of channels, no need to virtualize.
+
+            bool needsVirtualization = false;
+            int hardwareSupportedChannelCount = AudioHelpers.GetAudioSpeakerModeIntFromEnum(AudioSettings.driverCapabilities);
+            if ( hardwareSupportedChannelCount < _pc.getInboundCannelCount)
+            {
+                needsVirtualization = true;
+            }
+            Debug.Log($"Inbound channel count: {_pc.getInboundCannelCount}");
+            Debug.Log($"Hardware supported channel count: {hardwareSupportedChannelCount}");
+            Debug.Log($"Need to virtualize audio: {needsVirtualization}");
+            switch (_pc.getInboundCannelCount)
             {
                 case 2:
                     return virtualAudioSpeakers.Find( x => x.audioChannelType == VirtualSpeakerMode.Stereo);
                 case 6:
                     VirtualAudioSpeaker speaker6 = virtualAudioSpeakers.Find( x => x.audioChannelType == VirtualSpeakerMode.Mode5point1);
-                    if(speaker6 == null)
+                    if(speaker6 == null && needsVirtualization)
                     {
-                        GameObject obj = Instantiate (Resources.Load ("Five_One_Speaker") as GameObject, transform);
+                        GameObject obj = Instantiate (Resources.Load("Five_One_Speaker") as GameObject, transform);
                         speaker6 = obj.GetComponent<VirtualAudioSpeaker>();
                     }
                     return speaker6;
