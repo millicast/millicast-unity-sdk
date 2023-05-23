@@ -53,7 +53,13 @@ namespace Unity.WebRTC
                     onAudioRead?.Invoke(data, channels, m_sampleRate);
                 float[] cache = audioSplitHandler.GetAudioTrack(channelIndex);
                 if(cache != null && cache.Length > 0)
-                    Array.Copy(cache, data, data.Length);                    
+                {
+                    for(int i = 0; i < data.Length; i++)
+                    {
+                        data[i] *= cache[i];
+                    }
+                }
+                                      
             }
             else
             {

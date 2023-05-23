@@ -56,17 +56,17 @@ namespace Dolby.Millicast
     {
       _audioSourceRenderer.AddAudioSource(audioSource);
     }
-     public void AddVirtualAudioSpeaker(VirtualAudioSpeaker virtualSpeaker)
+     public void AddVirtualAudioSpeaker(VirtualAudioSpeaker virtualSpeaker, int channelCount)
     {
-      _audioSourceRenderer.AddVirtualAudioSpeaker(virtualSpeaker);
+      _audioSourceRenderer.AddVirtualAudioSpeaker(virtualSpeaker, channelCount);
     }
     public void AddAudioTarget(AudioSource audioSource, string streamId)
     {
       _audioSourceRenderer.AddAudioSource(audioSource, streamId);
     }
-     public void AddVirtualAudioSpeaker(VirtualAudioSpeaker virtualSpeaker, string streamId)
+     public void AddVirtualAudioSpeaker(VirtualAudioSpeaker virtualSpeaker, string streamId, int channelCount)
     {
-      _audioSourceRenderer.AddVirtualAudioSpeaker(virtualSpeaker, streamId);
+      _audioSourceRenderer.AddVirtualAudioSpeaker(virtualSpeaker, streamId, channelCount);
     }
 
     public void RemoveAudioTarget(AudioSource audioSource)

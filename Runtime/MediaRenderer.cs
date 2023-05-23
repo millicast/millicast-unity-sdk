@@ -38,10 +38,10 @@ namespace Dolby.Millicast
             _renderer.SetAudioTrack(audioTrack);
         }
 
-        public void AddVirtualAudioSpeaker(VirtualAudioSpeaker virtualSpeaker)
+        public void AddVirtualAudioSpeaker(VirtualAudioSpeaker virtualSpeaker, int channelCount)
         {
             Debug.Log("Added SetTexture...");
-            _renderer.AddVirtualAudioSpeaker(virtualSpeaker);
+            _renderer.AddVirtualAudioSpeaker(virtualSpeaker, channelCount);
         }
 
     

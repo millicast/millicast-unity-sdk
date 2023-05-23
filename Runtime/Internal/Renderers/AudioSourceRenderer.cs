@@ -30,18 +30,18 @@ namespace Dolby.Millicast
       }
     }
 
-    public void AddVirtualAudioSpeaker(VirtualAudioSpeaker speaker)
+    public void AddVirtualAudioSpeaker(VirtualAudioSpeaker speaker, int channelCount)
     {
-        RefreshAudioTrackWithIndex(speaker.getAudioSpeakers());
+        RefreshAudioTrackWithIndex(speaker.getAudioSpeakers(), channelCount);
     }
-    public void RefreshAudioTrackWithIndex(AudioSource[] audiosources)
+    private void RefreshAudioTrackWithIndex(AudioSource[] audiosources, int channelCount)
     {
       if(_renderAudioTrack != null && audiosources != null && audiosources.Length > 0)
        {
           int index = 0;
           foreach (var s in audiosources)
           {
-            s.SetTrack(_renderAudioTrack, index++, StatsParser.inboundAudioStreamChannelCount);
+            s.SetTrack(_renderAudioTrack, index++, channelCount);
             s.loop = true;
             s.Play();
           }
@@ -121,36 +121,29 @@ namespace Dolby.Millicast
         audioRenderer.AddAudioSource(source);
     }
 
-    public void AddVirtualAudioSpeaker(VirtualAudioSpeaker speaker)
+    public void AddVirtualAudioSpeaker(VirtualAudioSpeaker speaker, int channelCount)
     {
-        RefreshAudioTrackWithIndex(speaker.getAudioSpeakers());
+        RefreshAudioTrackWithIndex(speaker.getAudioSpeakers(), channelCount);
     }
-    public void AddVirtualAudioSpeaker(VirtualAudioSpeaker speaker, string sourceId)
+    public void AddVirtualAudioSpeaker(VirtualAudioSpeaker speaker, string sourceId, int channelCount)
     {
         MultiSourceAudioRenderer audioRenderer = multiSourceAudioRenderer.Find(x => x.sourceId.Equals(sourceId));
         if(audioRenderer == null)
           return;
-        audioRenderer.AddVirtualAudioSpeaker(speaker);
+        audioRenderer.AddVirtualAudioSpeaker(speaker, channelCount);
     }
-    private void RefreshAudioTrackWithIndex(AudioSource[] audiosources)
+    private void RefreshAudioTrackWithIndex(AudioSource[] audiosources, int channelCount)
     {
       if(_renderAudioTrack != null && audiosources != null && audiosources.Length > 0)
        {
           int index = 0;
           foreach (var s in audiosources)
           {
-            s.SetTrack(_renderAudioTrack, index++, StatsParser.inboundAudioStreamChannelCount);
+            s.SetTrack(_renderAudioTrack, index++, channelCount);
             s.loop = true;
             s.Play();
           }
        } 
-    }
-    private void RefreshAudioTrackWithIndex(AudioSource[] audiosources, string sourceId)
-    {
-      MultiSourceAudioRenderer audioRenderer = multiSourceAudioRenderer.Find(x => x.sourceId.Equals(sourceId));
-        if(audioRenderer == null)
-          return;
-        audioRenderer.RefreshAudioTrackWithIndex(audiosources);
     }
 
     /// <summary>
