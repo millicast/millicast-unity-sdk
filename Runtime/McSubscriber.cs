@@ -387,19 +387,24 @@ namespace Dolby.Millicast
         private VirtualAudioSpeaker GetVirtualAudioSpeaker()
         {
             // In the case where the hardware is capable of playing
-            // the incoming number of channels, no need to virtualize. 
-            if (virtualAudioSpeakers.Count == 0 &&
-                AudioHelpers.GetAudioSpeakerModeIntFromEnum(AudioSettings.GetConfiguration().speakerMode) > _pc.getInboundCannelCount)
+            // the incoming number of channels, no need to virtualize.
+
+            bool needsVirtualization = false;
+            int hardwareSupportedChannelCount = AudioHelpers.GetAudioSpeakerModeIntFromEnum(AudioSettings.driverCapabilities);
+            if ( hardwareSupportedChannelCount < _pc.getInboundCannelCount)
             {
-                return null;
+                needsVirtualization = true;
             }
+            Debug.Log($"Inbound channel count: {_pc.getInboundCannelCount}");
+            Debug.Log($"Hardware supported channel count: {hardwareSupportedChannelCount}");
+            Debug.Log($"Need to virtualize audio: {needsVirtualization}");
             switch (_pc.getInboundCannelCount)
             {
                 case 2:
                     return virtualAudioSpeakers.Find( x => x.audioChannelType == VirtualSpeakerMode.Stereo);
                 case 6:
                     VirtualAudioSpeaker speaker6 = virtualAudioSpeakers.Find( x => x.audioChannelType == VirtualSpeakerMode.Mode5point1);
-                    if(speaker6 == null)
+                    if(speaker6 == null && needsVirtualization)
                     {
                         GameObject obj = Instantiate (Resources.Load("Five_One_Speaker") as GameObject, transform);
                         speaker6 = obj.GetComponent<VirtualAudioSpeaker>();
