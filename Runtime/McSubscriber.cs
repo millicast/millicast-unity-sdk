@@ -36,7 +36,8 @@ namespace Dolby.Millicast
 
         public string Media;
 
-        public bool waitForMID;
+        public bool waitForTrack;
+        public RTCRtpTransceiver transceiver;
     }
     
     /// <summary>
@@ -93,7 +94,7 @@ namespace Dolby.Millicast
         private bool _subscribeOnStart = false;
 
 
-        [SerializeField] public MediaRenderers defaultMediaRenderer;
+        [SerializeField] public MediaRenderers defaultMediaRenderer = new MediaRenderers();
 
         [SerializeField] private List<MultiSourceMediaRenderer> multiSourceMediaList = new List<MultiSourceMediaRenderer>();
        // public AdvancedAudioConfig AdvancedAudioConfiguration;
@@ -301,8 +302,8 @@ namespace Dolby.Millicast
                 string sourceId = activeProjection != null ? activeProjection.sourceId : "";
                 if (e.Track is VideoStreamTrack track)
                 {
-                    Debug.Log("[Subscriber] Received video track"+track.Id+","+activeProjection);
-                    UpdateMediaID(sourceId, "video");
+                    Debug.Log("[Subscriber] Received video track: "+track.Id);
+                    UpdateMediaID(track.Id, "video");
                     track.OnVideoReceived += (tex) =>
                     {
                         Debug.Log("[Subscriber] Received video track texture");
@@ -311,7 +312,7 @@ namespace Dolby.Millicast
                 }
                 if (e.Track is AudioStreamTrack audioTrack)
                 {
-                    UpdateMediaID(sourceId, "audio");
+                    UpdateMediaID(audioTrack.Id, "audio");
                     SetAudioTrack(audioTrack, sourceId);
                 }
             };
@@ -368,10 +369,10 @@ namespace Dolby.Millicast
         {
             foreach (var item in activeProjection.tracks)
             {
-                if(type.Equals(item.TrackId.ToLower()))
+                if(sourceId.Equals(item.transceiver.Receiver.Track.Id))
                 {
-                    item.Mid = sourceId;
-                    item.waitForMID = false;
+                    item.Mid = item.transceiver.Mid;
+                    item.waitForTrack = false;
                 }    
             }
         }
@@ -662,7 +663,7 @@ namespace Dolby.Millicast
         {
             if(GetMediaRenderer(projectionData.sourceId) == null)
                 return;
-            AddStream(projectionData.sourceId);
+             AddStream(projectionData.sourceId);
              RTCRtpTransceiverInit init = new RTCRtpTransceiverInit();
              init.direction = RTCRtpTransceiverDirection.RecvOnly;
             foreach(var track in projectionData.tracks)
@@ -670,15 +671,15 @@ namespace Dolby.Millicast
                 track.Mid = "";
                 if(track.Media.ToLower().Equals("audio"))
                 {
-                    _pc.AddTransceiver(TrackKind.Audio, init);
-                    track.waitForMID = true;
-                    Debug.Log("added audio transceiver");
+                   track.transceiver =  _pc.AddTransceiver(TrackKind.Audio, init);
+                   track.waitForTrack = true;
+                    Debug.Log("added audio transceiver: "+track.transceiver.Receiver.Track.Id);
                 }
                 else if(track.Media.ToLower().Equals("video"))
                 {
-                   _pc.AddTransceiver(TrackKind.Video, init);
-                   track.waitForMID = true;
-                    Debug.Log("added video transceiver");
+                   track.transceiver = _pc.AddTransceiver(TrackKind.Video, init);
+                   track.waitForTrack = true;
+                    Debug.Log("added video transceiver: "+track.transceiver.Receiver.Track.Id);
                 }
             }
             activeProjection = projectionData;
@@ -687,29 +688,32 @@ namespace Dolby.Millicast
 
         IEnumerator CheckForTracks()
         {
-            while(activeProjection.tracks[0].waitForMID || activeProjection.tracks[1].waitForMID)
-                yield return new WaitForEndOfFrame();
+             while(activeProjection.tracks[0].waitForTrack)
+                yield return new WaitForSeconds(1);
 
-            foreach(var trans in _pc.GetTransceivers())
-            {
-                if(string.IsNullOrEmpty(trans.Mid))
-                    continue;
-                if(trans.Receiver.Track is AudioStreamTrack audioTrack)
+              while(activeProjection.tracks[1].waitForTrack)
+                yield return new WaitForSeconds(1);
+
+            /*TrackData audioTrackData = activeProjection.tracks.Find(x => x.TrackId.Equals("audio"));
+             if(audioTrackData.transceiver.Receiver.Track is AudioStreamTrack audioTrack)
                 {
-                    var audTrackData = activeProjection.tracks.Find(x=> x.Media.Equals("audio"));
-                    if(audTrackData != null)
-                        audTrackData.Mid = trans.Mid;
-                    Debug.Log("MID for audio:"+trans.Mid);
+                    SetAudioTrack(audioTrack, activeProjection.sourceId);
+                    Debug.Log("MID for audio:"+audioTrackData.transceiver.Mid);
                 }  
-                if(trans.Receiver.Track is VideoStreamTrack videoTrack)
+                TrackData videoTrackData = activeProjection.tracks.Find(x => x.TrackId.Equals("video"));
+                if(videoTrackData.transceiver.Receiver.Track is VideoStreamTrack videoTrack)
                 {
-                    var vidTrackData = activeProjection.tracks.Find(x=> x.Media.Equals("video"));
-                    if(vidTrackData != null)
-                        vidTrackData.Mid = trans.Mid;
-                    Debug.Log("MID for audio:"+trans.Mid);
-                }    
+ 
+                    Debug.Log("MID for video:"+videoTrackData.transceiver.Mid);
+                    videoTrack.OnVideoReceived += (tex) =>
+                    {
+                        Debug.Log("[Subscriber] Received video track texture");
+                        SetTexture(tex, activeProjection.sourceId);
+                    };
+                }  
 
-            }
+            Debug.Log("*********** Check Successfull *************");
+            */
             Project(activeProjection);
         }
 
@@ -749,7 +753,7 @@ namespace Dolby.Millicast
                 info["trackid"] = data.TrackId;
                 info["mediaId"] = data.Mid;
                 info["media"] = data.Media;
-                Debug.Log("Source Id:"+projectionData.sourceId+", track Id:"+data.TrackId+", mediaId:"+data.Mid+", media: "+data.Media);
+                Debug.Log("Source Id:"+projectionData.sourceId+", track Id:"+data.TrackId+", mediaId:"+data.transceiver.Mid+", media: "+data.Media);
                 projectionsList.Add(info);
             }
             

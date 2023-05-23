@@ -172,6 +172,7 @@ namespace Dolby.Millicast
     private RTCPeerConnection _pc;
     private ISignaling _signaling;
     private StatsParser parser;
+    private bool isNegotiationDone = false;
 
 
     private void OnIceConnectionChange(RTCIceConnectionState state)
@@ -187,7 +188,6 @@ namespace Dolby.Millicast
 
     private void OnTrackEvent(RTCTrackEvent e)
     {
-      Debug.Log("******************On Track Received*******************");
       OnTrack?.Invoke(e);
     }
 
@@ -245,6 +245,7 @@ namespace Dolby.Millicast
     private void OnSetRemoteSuccess(RTCSessionDescription desc)
     {
       remoteSdp = desc;
+      isNegotiationDone = true;
       Debug.Log($"SetRemoteDescription complete");
       OnConnected?.Invoke(this);
     }
@@ -316,6 +317,96 @@ namespace Dolby.Millicast
       HandleError(error.message);
     }
 
+    IEnumerator PeerRenegotiationNeeded()
+    {
+      yield return new WaitForEndOfFrame();
+       //ToDo
+    }
+
+    private void Renegotiate(RTCSessionDescription localsdp, RTCSessionDescription remotesdp)
+    {
+        //ToDO    
+    }
+
+    /*
+        void PeerConnection::renegociate(const webrtc::SessionDescriptionInterface *local_sdp,
+                                    const webrtc::SessionDescriptionInterface *remote_sdp)
+    {
+      // Clone the remote sdp to have a setup a new one
+      auto new_remote = remote_sdp->Clone();
+
+      if (!new_remote)
+      {
+        Logger::log("Could not clone remote sdp", LogLevel::MC_ERROR);
+        return;
+      }
+
+      auto local_desc = local_sdp->description();
+
+      int mline_index = 0; // Keep track of the mline index to add ice candidates
+      for (const auto &offer_content : local_desc->contents())
+      {
+        auto remote_desc = new_remote->description();
+
+        // Find the corresponding mid in the answer
+        auto answered_media = remote_desc->GetContentDescriptionByName(offer_content.mid());
+
+        // If it does not exists create it
+        if (!answered_media)
+        {
+          // Get offered media description
+          auto offered_media = offer_content.media_description();
+
+          // Copy the offer media into the answered media
+          auto answered_media_new = offered_media->Clone();
+          // Invert the transceiver direction
+          answered_media_new->set_direction(reverse_direction(offered_media->direction()));
+
+          // Add the media description for the answer
+          remote_desc->AddContent(offer_content.mid(),
+                                  cricket::MediaProtocolType::kRtp,
+                                  std::move(answered_media_new));
+
+          // Copy the transport info from the first mid of the remote desc
+          auto transport_info = remote_desc->GetTransportInfoByName(remote_desc->FirstContent()->name);
+          cricket::TransportInfo new_transport_info{offer_content.mid(), transport_info->description};
+
+          remote_desc->AddTransportInfo(new_transport_info);
+
+          // Add mid to the BUNDLE group
+          cricket::ContentGroup bundle = remote_desc->groups().front();
+          bundle.AddContentName(offer_content.mid());
+          remote_desc->RemoveGroupByName(bundle.semantics());
+          remote_desc->AddGroup(bundle);
+
+          // reinit to update the number of mediasections
+          auto new_remote_jsep = static_cast<webrtc::JsepSessionDescription *>(new_remote.get());
+          new_remote_jsep->Initialize(remote_desc->Clone(),
+                                      new_remote->session_id(),
+                                      new_remote->session_version());
+
+          // Copy ice candidates for the new mline_index
+          auto candidates = new_remote->candidates(0);
+          for (size_t i = 0; i < candidates->count(); ++i)
+          {
+            auto c = candidates->at(i);
+            auto new_candidate = webrtc::CreateIceCandidate(offer_content.mid(),
+                                                            mline_index,
+                                                            c->candidate());
+            new_remote->AddCandidate(new_candidate.release());
+          }
+        }
+
+        ++mline_index;
+      }
+
+      std::string sdp;
+      new_remote->ToString(&sdp);
+
+      Logger::log("[renegociation] remote sdp : " + sdp, LogLevel::MC_LOG);
+      set_remote_desc(sdp);
+    }*/
+
     IEnumerator PeerNegotiationNeeded()
     {
       var op = _pc.CreateOffer();
@@ -339,7 +430,12 @@ namespace Dolby.Millicast
 
     private void OnNegotiationNeeded()
     {
-      OnCoroutineRunRequested?.Invoke(PeerNegotiationNeeded());
+      if(!isNegotiationDone)
+      {
+        OnCoroutineRunRequested?.Invoke(PeerNegotiationNeeded());
+      }  
+      else
+        OnCoroutineRunRequested?.Invoke(PeerRenegotiationNeeded());
     }
 
     private RTCSessionDescription ParseAnswer(ServiceResponseData payload)
@@ -393,9 +489,10 @@ namespace Dolby.Millicast
       }
     }
 
-    public void AddTransceiver(TrackKind kind, RTCRtpTransceiverInit init = null)
+
+    public RTCRtpTransceiver AddTransceiver(TrackKind kind, RTCRtpTransceiverInit init = null)
     {
-      _pc.AddTransceiver(kind, init);
+      return _pc.AddTransceiver(kind, init);
     }
 
 
