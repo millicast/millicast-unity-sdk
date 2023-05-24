@@ -97,6 +97,22 @@ public class CustomAudioSource : MonoBehaviour
 
     }
 
+    public void LoadValuesFromAudioSource()
+    {
+        minDistance = audioSource.minDistance;
+        maxDistance = audioSource.maxDistance;
+        volume = audioSource.volume;
+        spread = audioSource.spread;
+    }
+
+    public void UpdateAudioSourceValues()
+    {
+        audioSource.minDistance = minDistance;
+        audioSource.maxDistance = maxDistance;
+        audioSource.volume = volume;
+        audioSource.spread = spread;
+    }
+
 
     private void updateSpectrumData()
     {
@@ -110,12 +126,6 @@ public class CustomAudioSource : MonoBehaviour
     {
         if (!Application.isPlaying)
         {
-            audioSource.spatialBlend = 1f;
-            audioSource.minDistance = minDistance;
-            audioSource.maxDistance = maxDistance;
-            audioSource.spread = spread;
-            audioSource.volume = volume;
-
             DrawGizmos();
         }
         else
@@ -142,3 +152,21 @@ public class CustomAudioSource : MonoBehaviour
      }
      #endif
 }
+#if UNITY_EDITOR
+[CustomEditor(typeof(CustomAudioSource))]
+ public class CustomAudioSourceEditor : Editor 
+ {
+    public CustomAudioSource customAudioSource;
+    private void Awake() 
+    {
+        if (customAudioSource == null)
+            customAudioSource = target as CustomAudioSource;
+    }
+     public override void OnInspectorGUI() 
+     {
+        customAudioSource.LoadValuesFromAudioSource();
+        base.OnInspectorGUI();
+        customAudioSource.UpdateAudioSourceValues();
+     }
+ }
+ #endif
