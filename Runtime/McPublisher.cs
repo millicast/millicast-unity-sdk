@@ -138,7 +138,22 @@ namespace Dolby.Millicast
         [DrawIf("streamType", StreamType.Video, true)]
         [DrawIf("_useAudioListenerAsSource", false)] 
         public AudioSource _audioSource;
-        //visibility will be controller by the EditorScript=> MyEditorClass
+        
+        [SerializeField] private bool enableMultiSource;
+        [SerializeField][DrawIf(nameof(enableMultiSource), true)]
+        private string _sourceId;
+        /// <summary>
+        /// The stream name to publish to. 
+        /// </summary>
+        public string sourceid
+        {
+            get => _sourceId;
+            set 
+            {
+                enableMultiSource = true;
+                _sourceId = value;
+            }
+        }
        
         private VideoConfig _videoConfig;
         private SimulcastLayers _simulcastLayersInfo;
@@ -211,9 +226,9 @@ namespace Dolby.Millicast
             var codecName = _options.videoCodec.ToString();
             payload["codec"] = codecName;
 
-            if (_options.multiSourceId?.Length != 0)
+            if (enableMultiSource && !string.IsNullOrEmpty(_sourceId))
             {
-                payload["sourceId"] = _options.multiSourceId;
+                payload["sourceId"] = _sourceId;
             }
 
             yield return _signaling?.Send(ISignaling.Event.PUBLISH, payload);
