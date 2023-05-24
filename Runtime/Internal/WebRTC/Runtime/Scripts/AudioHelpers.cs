@@ -35,5 +35,17 @@ namespace Unity.WebRTC
           return -1;
       }
     }
+
+    internal static AudioClip CreateDummyAudioClip(string name, int sampleRate)
+    {
+        AudioClip clip = AudioClip.Create(name, sampleRate, 1, sampleRate, false);
+        float[] dummyData = new float[sampleRate];
+        for (int i = 0; i < dummyData.Length; i++)
+        {
+            dummyData[i] = 1.0f;
+        }
+        clip.SetData(dummyData, 0);
+        return clip;
+    }
   }
 }

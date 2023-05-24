@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 namespace Unity.WebRTC
@@ -5,6 +6,7 @@ namespace Unity.WebRTC
     public class AudioSplitHandler
     {
         public Dictionary<int, AudioTrackFilter> audioTrackDictionary = new Dictionary<int, AudioTrackFilter>();
+        private readonly object audioTrackLock = new object();
         private int channelCount;
         private int hardwarespeakersCount = 2;
         private int outputBufferSize;
@@ -17,7 +19,10 @@ namespace Unity.WebRTC
 
         public void AddTrack(int index)
         {
-            audioTrackDictionary.Add(index, new AudioTrackFilter(outputBufferSize));
+            lock(audioTrackLock)
+            {
+                audioTrackDictionary.Add(index, new AudioTrackFilter(outputBufferSize));
+            }
             
         }
         public void SetAudioTrack(int index, float[] data)
@@ -26,19 +31,22 @@ namespace Unity.WebRTC
         }
         public bool isBufferEmpty()
         {
-            foreach(var key in audioTrackDictionary.Keys)
+            lock(audioTrackLock)
             {
-                if(audioTrackDictionary[key] != null && audioTrackDictionary[key].buffereAvailable)
-                    return false;
+                foreach(var key in audioTrackDictionary.Keys)
+                {
+                    if(audioTrackDictionary[key] != null && audioTrackDictionary[key].buffereAvailable)
+                        return false;
+                }
+                return true;
             }
-            return true;
 
         }
         public float[] GetAudioTrack(int index)
         {
-            if(audioTrackDictionary[index] != null)
-                return audioTrackDictionary[index].GetAudioTrack();
-            return null;
+                if(audioTrackDictionary[index] != null)
+                    return audioTrackDictionary[index].GetAudioTrack();
+                return null;
         }
 
         private float[] GetChannelData(float[] data, int channelIndex)
@@ -53,18 +61,39 @@ namespace Unity.WebRTC
 
         public void SetfilteredData(float[] data)
         {
-            foreach (var key in audioTrackDictionary.Keys)
+            lock(audioTrackLock)
             {
-                float[] list = GetChannelData(data, key);
-                int index = 0;
-                float[] cachebuffer = new float[outputBufferSize];
-                for(int i = 0; i< list.Length ; i++)//fill all the hardware speakers
+                foreach (var key in audioTrackDictionary.Keys)
                 {
-                    for(int j =0; j < hardwarespeakersCount; j++)
-                        cachebuffer[index+j] = list[i];
-                    index +=hardwarespeakersCount;
+                    float[] list = GetChannelData(data, key);
+                    int index = 0;
+                    float[] cachebuffer = new float[outputBufferSize];
+                    for(int i = 0; i< list.Length ; i++)//fill all the hardware speakers
+                    {
+                        for(int j =0; j < hardwarespeakersCount; j++)
+                            cachebuffer[index+j] = list[i];
+                        index +=hardwarespeakersCount;
+                    }
+                    SetAudioTrack(key, cachebuffer);
                 }
-                SetAudioTrack(key, cachebuffer);
+            }
+        }
+        
+        internal void SetSampleBufferSizeAndChannelCount(int bufferLength, int channelCount)
+        {
+            hardwarespeakersCount = channelCount;
+            outputBufferSize = hardwarespeakersCount * bufferLength;
+            ResetAudioTrackFilters();
+        }
+
+        internal void ResetAudioTrackFilters()
+        {
+            lock(audioTrackLock)
+            {
+                foreach(var filter in audioTrackDictionary.Values)
+                {
+                    filter.ResetBufferSize(outputBufferSize);
+                }
             }
         }
     }
@@ -92,6 +121,12 @@ namespace Unity.WebRTC
             }
             return null;
             
+        }
+
+        internal void ResetBufferSize(int outputBufferSize)
+        {
+            this.data = new float[outputBufferSize];
+            buffereAvailable = false;
         }
     }
 }

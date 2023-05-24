@@ -20,7 +20,8 @@ namespace Unity.WebRTC
         public bool loopback = false;
         public int channelIndex = -1;
         private int m_sampleRate;
-        public AudioSplitHandler audioSplitHandler;
+        public AudioSplitHandler audioSplitHandler = null;
+        public AudioSource audioSource = null;
 
         void OnEnable()
         {
@@ -36,6 +37,29 @@ namespace Unity.WebRTC
         void OnAudioConfigurationChanged(bool deviceWasChanged)
         {
             m_sampleRate = AudioSettings.outputSampleRate;
+            int bufferLength = 0;
+            int numBuffers = 0;
+            AudioSettings.GetDSPBufferSize(out bufferLength, out numBuffers);
+            int channelCount = AudioHelpers.GetAudioSpeakerModeIntFromEnum(AudioSettings.driverCapabilities);
+            Debug.Log($"Audio configuration changed:\n\tdevice {deviceWasChanged}\n\tsamplerate {m_sampleRate}\n\tbufferLength {bufferLength}\n\tchannelcount {channelCount}");
+
+            // Need to change the audio clip
+            if (audioSource != null)
+            {
+                audioSource.Stop();
+                audioSource.clip = AudioHelpers.CreateDummyAudioClip("Channel" + channelIndex, m_sampleRate);
+            }
+
+            if (audioSplitHandler != null)
+            {
+                audioSplitHandler.SetSampleBufferSizeAndChannelCount(bufferLength, channelCount);
+            }
+
+            if (audioSource != null)
+            {
+                audioSource.Play();
+            }
+
         }
 
         /// <summary>
