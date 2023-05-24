@@ -5,7 +5,7 @@ using UnityEngine;
 using System.Threading;
 using Unity.WebRTC;
 
-namespace Unity.WebRTC
+namespace Dolby.Millicast
 {
   internal class AudioHelpers
   {
@@ -14,7 +14,7 @@ namespace Unity.WebRTC
     /// Maps Unity's AudioSpeakerMode Enum to an integer
     /// </summary>
     /// <returns></returns>
-    public static int GetAudioSpeakerModeIntFromEnum(AudioSpeakerMode mode)  
+    internal static int GetAudioSpeakerModeIntFromEnum(AudioSpeakerMode mode)  
     {
       switch(mode)
       {
