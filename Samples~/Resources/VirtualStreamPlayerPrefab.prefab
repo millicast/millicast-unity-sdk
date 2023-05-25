@@ -51,8 +51,13 @@ MonoBehaviour:
   _renderMaterials:
   - {fileID: 2100000, guid: 86b53472c6bec42ab88227a6db53d7e7, type: 2}
   _renderImages: []
+  defaultAudioConfiguration: {fileID: 11400000, guid: b75dd73923a856b4ca052585037e6b45, type: 2}
   _renderAudioSources:
   - {fileID: 8006035715293268320}
+  virtualAudioSpeakers: []
+  simulcastEvent:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &8006035714895528312
 GameObject:
   m_ObjectHideFlags: 0

@@ -12,19 +12,38 @@ namespace Dolby.Millicast
     /// </summary>
     [Serializable]
     [CreateAssetMenu(fileName = "Audio Configuration", menuName = "Millicast/Audio Configuration")]
-    public partial class AudioConfiguration : ScriptableObject
+    public class AudioConfiguration : ScriptableObject
     {
-        public AdvancedAudioConfig AdvancedAudioConfiguration;
+        [SerializeField]
+        [Tooltip("Min Distance")]
+        [Range(1f, 500f)]
+        private float minDistance = 1f;
+
+
+        [SerializeField]
+        [Tooltip("Max Distance")]
+        [Range(1f, 500f)]
+        private float maxDistance = 50f;
+
+        [SerializeField]
+        [Tooltip("Spread")]
+        [Range(0f, 360f)]
+        private float spread = 0f;
+
+        [SerializeField]
+        [Tooltip("Volume")]
+        [Range(0f, 1f)]
+        private float volume = 1f;
+
+        public void LoadData(AudioSource targetAudioSource)
+        {
+            targetAudioSource.volume = volume;
+            targetAudioSource.spread = spread;
+            targetAudioSource.minDistance = minDistance;
+            targetAudioSource.maxDistance = maxDistance;
+        }
     }
-    [System.Serializable]
-    public class AdvancedAudioConfig
-    {
-        public VirtualSpeakerMode audioChannelType;
-        public bool addSpeakers;
-        [DrawIf("audioChannelType", VirtualSpeakerMode.Mono)] public AudioSource speaker;
-        [DrawIf("audioChannelType", VirtualSpeakerMode.Stereo)] public StereoAudio StereoSpeakers;
-        [DrawIf("audioChannelType", VirtualSpeakerMode.Mode5point1)] public FiveOneAudio FiveOneAudioSpeakers;
-    }
+
     [System.Serializable]
     public class StereoAudio
     {
