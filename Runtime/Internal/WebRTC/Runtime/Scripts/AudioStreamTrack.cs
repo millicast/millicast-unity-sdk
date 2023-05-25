@@ -86,20 +86,20 @@ namespace Unity.WebRTC
             private AudioSource _audioSource;
             private List<AudioCustomFilter> _filters = new List<AudioCustomFilter>();
             private AudioStreamTrack _track;
-            private int inboundAudioChannelCount = -1;
+            private int _inboundAudioChannelCount = -1;
 
-            private int sampleRate = 48000;
-            private int audioBufferSize = 1024;
+            private int _sampleRate = 48000;
+            private int _audioBufferSize = 1024;
             AudioSplitHandler audioHandler;
             public void SetChannelCount(int count)
             {
-                if(inboundAudioChannelCount != count)
+                if(_inboundAudioChannelCount != count)
                 {
                     int numBuffers = 0;
-                    AudioSettings.GetDSPBufferSize(out audioBufferSize, out numBuffers);
-                    sampleRate = AudioSettings.outputSampleRate;
-                    inboundAudioChannelCount = count;
-                    audioHandler = new AudioSplitHandler(inboundAudioChannelCount, audioBufferSize);
+                    AudioSettings.GetDSPBufferSize(out _audioBufferSize, out numBuffers);
+                    _sampleRate = AudioSettings.outputSampleRate;
+                    _inboundAudioChannelCount = count;
+                    audioHandler = new AudioSplitHandler(_inboundAudioChannelCount, _audioBufferSize);
                 }
             }
 
@@ -158,7 +158,7 @@ namespace Unity.WebRTC
                     _filter.sender = false;
                     _filter.channelIndex = index;
                     _filter.audioSource = source;
-                    source.clip = AudioHelpers.CreateDummyAudioClip("Channel" + index, sampleRate);
+                    source.clip = AudioHelpers.CreateDummyAudioClip("Channel" + index, _sampleRate);
                     source.Play();
                 }
             }
@@ -224,10 +224,10 @@ namespace Unity.WebRTC
 
             internal void SetTrackData(float[] data, int channels, int sampleRate)
             {
-                channels = inboundAudioChannelCount;
-                int buffsize = channels * audioBufferSize;
+                channels = _inboundAudioChannelCount;
+                int buffsize = channels * _audioBufferSize;
                 float[] audiotrack = new float[buffsize];
-                NativeMethods.AudioTrackSinkProcessAudio(self, audiotrack, buffsize, inboundAudioChannelCount, sampleRate);
+                NativeMethods.AudioTrackSinkProcessAudio(self, audiotrack, buffsize, _inboundAudioChannelCount, sampleRate);
                 audioHandler.SetfilteredData(audiotrack);
             }
         }
