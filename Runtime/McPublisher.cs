@@ -669,7 +669,10 @@ namespace Dolby.Millicast
             }
 
             _audioTrack = new AudioStreamTrack();
-            gameObject.AddComponent<AudioSender>().SetAudioTrack(_audioTrack);
+            var audioSender = gameObject.AddComponent<AudioSender>();
+            audioSender.SetAudioTrack(_audioTrack);
+            audioSender.hideFlags = HideFlags.HideInInspector;
+
             _useAudioListenerAsSource = true;
             _renderer.SetAudioTrack(_audioTrack);
 
