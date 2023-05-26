@@ -76,6 +76,7 @@ namespace Dolby.Millicast
         /// enabling this will rename the mesh renderer's material
         /// to the stream name, and render the incoming stream on it.
         /// </summary>
+        [Header("\nVideo Settings: \n")]
         [SerializeField]
         [Tooltip("Enabling will render incoming stream onto mesh renderer's material, if it exists.")]
         private bool _updateMeshRendererMaterial = false;
@@ -107,6 +108,10 @@ namespace Dolby.Millicast
             get => _renderImages;
         }
 
+        [Header("\nAudio Settings :\n")]
+        [Tooltip("default Audio configuration.")]
+        [SerializeField]
+        private AudioConfiguration defaultAudioConfiguration;
 
         /// <summary>
         /// Manually set the audio sources to render to. This
@@ -121,6 +126,8 @@ namespace Dolby.Millicast
         }
         [Tooltip("Adding virtual audio source for stereo stream type will ignore Render Audio Sources.")]
         public List<VirtualAudioSpeaker> virtualAudioSpeakers;
+        
+        [Header("\nEvent Listeners :\n")]
         [SerializeField] private SimulcastEvent simulcastEvent;
         private SimulcastInfo simulCastInfo;
 
@@ -408,6 +415,8 @@ namespace Dolby.Millicast
                     {
                         GameObject obj = Instantiate (Resources.Load("Five_One_Speaker") as GameObject, transform);
                         speaker6 = obj.GetComponent<VirtualAudioSpeaker>();
+                        if(defaultAudioConfiguration != null)
+                            speaker6.UpdateAudioConfiguration(defaultAudioConfiguration);
                         virtualAudioSpeakers.Add(speaker6);
                     }
                     return speaker6;

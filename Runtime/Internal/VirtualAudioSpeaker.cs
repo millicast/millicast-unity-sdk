@@ -38,6 +38,15 @@ namespace Dolby.Millicast
             this.channelMap = channelMap;
         }
 
+        public void UpdateAudioConfiguration(AudioConfiguration audioConfig)
+        {
+            var speakers = transform.GetComponentsInChildren<AudioSource>();
+            foreach (var speaker in speakers)
+            {
+                audioConfig.LoadData(speaker);
+            }
+        }
+
         private AudioSource[] getMonoSpeakers()
         {
             AudioSource[] speakers = {speaker};
