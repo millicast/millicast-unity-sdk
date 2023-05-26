@@ -2,15 +2,33 @@
 using System;
 using UnityEditor;
 using UnityEngine;
+using Dolby.Millicast;
 
 [RequireComponent(typeof(AudioSource))]
 [ExecuteInEditMode]
 public class CustomAudioSource : MonoBehaviour
 {
+
+    public enum ConfigType
+    {
+        Manual,
+        [InspectorName("Use Audio Configuration")] Use_Audio_Configuration
+    }
+
+    public ConfigType audioConfigurationType;
     private AudioSource audioSource;
 
     [SerializeField]
-    [Tooltip("Min Distance")]
+    [DrawIf("audioConfigurationType", ConfigType.Use_Audio_Configuration)]
+    public Dolby.Millicast.AudioConfiguration audioConfiguration;
+       
+    [SerializeField]
+    [DrawIf("audioConfigurationType", ConfigType.Use_Audio_Configuration)][Tooltip("If enabled, changes done to Audio Source will be updated in the Audio Configuration")]
+    public bool allowChangesToAudioConfig;
+    
+
+    [SerializeField]
+    [DrawIf("audioConfigurationType", ConfigType.Manual)][Tooltip("Min Distance")]
     [Range(1f, 500f)]
     private float minDistance = 1f;
 
@@ -25,7 +43,7 @@ public class CustomAudioSource : MonoBehaviour
     }
 
     [SerializeField]
-    [Tooltip("Max Distance")]
+    [DrawIf("audioConfigurationType", ConfigType.Manual)][Tooltip("Max Distance")]
     [Range(1f, 500f)]
     private float maxDistance = 50f;
 
@@ -41,7 +59,7 @@ public class CustomAudioSource : MonoBehaviour
 
     [SerializeField]
     [Tooltip("Spread")]
-    [Range(0f, 360f)]
+    [DrawIf("audioConfigurationType", ConfigType.Manual)][Range(0f, 360f)]
     private float spread = 0f;
     private Texture2D PlayIcon, DefaultIcon;
     private float minSpectrumVal = 0.001f;
@@ -60,7 +78,7 @@ public class CustomAudioSource : MonoBehaviour
     }
 
     [SerializeField]
-    [Tooltip("Volume")]
+    [DrawIf("audioConfigurationType", ConfigType.Manual)][Tooltip("Volume")]
     [Range(0f, 1f)]
     private float volume = 1f;
 
@@ -111,6 +129,20 @@ public class CustomAudioSource : MonoBehaviour
         audioSource.maxDistance = maxDistance;
         audioSource.volume = volume;
         audioSource.spread = spread;
+    }
+
+    public void UpdateAudioSourceValuesFromConfig()
+    {
+        if(audioConfiguration != null)
+        {
+            audioConfiguration.LoadData(audioSource);
+        }
+    }
+
+    public void OverrideConfigData()
+    {
+        if(audioConfiguration != null)
+            audioConfiguration.OverrideData(audioSource);
     }
 
 
@@ -164,9 +196,26 @@ public class CustomAudioSource : MonoBehaviour
     }
      public override void OnInspectorGUI() 
      {
-        customAudioSource.LoadValuesFromAudioSource();
+        if(customAudioSource.audioConfigurationType == CustomAudioSource.ConfigType.Use_Audio_Configuration)
+        {
+            if(customAudioSource.allowChangesToAudioConfig)
+            {
+                customAudioSource.OverrideConfigData();
+                GUILayout.Label("Changes done to Audio Source will be updated in the Audio Configuration");
+            }    
+             else
+            {
+                GUILayout.Label("Changes done to Audio Source will not be updated in the Audio Configuration");
+            }
+        }  
+        else
+            customAudioSource.LoadValuesFromAudioSource();
         base.OnInspectorGUI();
-        customAudioSource.UpdateAudioSourceValues();
+        
+        if(customAudioSource.audioConfigurationType == CustomAudioSource.ConfigType.Manual)
+            customAudioSource.UpdateAudioSourceValues();
+        else if(customAudioSource.audioConfigurationType == CustomAudioSource.ConfigType.Use_Audio_Configuration)
+            customAudioSource.UpdateAudioSourceValuesFromConfig();    
      }
  }
  #endif

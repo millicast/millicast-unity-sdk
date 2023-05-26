@@ -5,6 +5,13 @@ using UnityEditor;
 namespace Dolby.Millicast
 {
 
+    public enum AudioOutputType
+    {
+        Auto,
+        AudioSource,
+        VirtualSpeakers
+    }
+
     /// <summary>
     /// A Scriptable Object that can be used to configure Audio configuration details which will be used for Subscribing. 
     /// More information on where to get those details from can be found in 
@@ -42,6 +49,14 @@ namespace Dolby.Millicast
             targetAudioSource.minDistance = minDistance;
             targetAudioSource.maxDistance = maxDistance;
         }
+
+        public void OverrideData(AudioSource sourceAudio)
+        {
+            volume = sourceAudio.volume;
+            spread = sourceAudio.spread;
+            minDistance = sourceAudio.minDistance;
+            maxDistance = sourceAudio.maxDistance;
+        }
     }
 
     [System.Serializable]
@@ -70,11 +85,5 @@ namespace Dolby.Millicast
            AudioSource[] speakers =  {_left, _surroundLeft, _right, _center, _lfe, _surroundRight};
            return speakers;
         }
-    }
-    
-    [System.Serializable]
-    public class CustomAudio
-    {
-        public List<AudioSource> speakers;
     }
 }

@@ -109,23 +109,44 @@ namespace Dolby.Millicast
         }
 
         [Header("\nAudio Settings :\n")]
+
+        public AudioOutputType audioOutputType;
+
         [Tooltip("default Audio configuration.")]
-        [SerializeField]
+        [SerializeField][DrawIf("audioOutputType", AudioOutputType.Auto)]
         private AudioConfiguration defaultAudioConfiguration;
 
+         [Tooltip("default Audio configuration.")]
+        [SerializeField][DrawIf("audioOutputType", AudioOutputType.Auto)]
+        private Transform audioSpawnLocation;
+        [System.Serializable]
+        public class RenderAudioSources
+        {
+            public List<AudioSource> audioSources;
+        }
+
+        [System.Serializable]
+        public class VirtualSpeakers
+        {
+            public VirtualAudioSpeaker stereoVirtualSpeaker;
+            public VirtualAudioSpeaker fiveOneVirtualSpeaker;
+        }
         /// <summary>
         /// Manually set the audio sources to render to. This
         /// is used when you want utilise the Unity Inspector UI.
         /// </summary>
         [Tooltip("Add your AudioSources here to render incoming audio streams, will work only for stereo incoming audio types.")]
-        [SerializeField]
-        private List<AudioSource> _renderAudioSources = new List<AudioSource>();
+        [SerializeField][DrawIf("audioOutputType", AudioOutputType.AudioSource)]
+        public RenderAudioSources OutputAudioSources;
+
+        [SerializeField][DrawIf("audioOutputType", AudioOutputType.VirtualSpeakers)]
+         public VirtualSpeakers OutputAudioSpeakers;
+
+        private List<AudioSource> _renderAudioSources => OutputAudioSources.audioSources;
         public List<AudioSource> renderAudioSources
         {
             get => this._renderAudioSources;
         }
-        [Tooltip("Adding virtual audio source for stereo stream type will ignore Render Audio Sources.")]
-        public List<VirtualAudioSpeaker> virtualAudioSpeakers;
         
         [Header("\nEvent Listeners :\n")]
         [SerializeField] private SimulcastEvent simulcastEvent;
@@ -374,21 +395,52 @@ namespace Dolby.Millicast
             if(_pc != null && _pc.getInboundChannelCount > 0 && channelsCount != _pc.getInboundChannelCount)
             {
                 channelsCount = _pc.getInboundChannelCount;
-                VirtualAudioSpeaker speaker = GetVirtualAudioSpeaker();
-                if(speaker != null)
-                {
-                    speaker.SetChannelMap(_pc.getChannelMap); 
-                    _renderer.AddVirtualAudioSpeaker(speaker, _pc.getInboundChannelCount);
-                }
-                else
-                {
-                    foreach (var audioSource in _renderAudioSources)
-                    {
-                        AddRenderAudioSource(audioSource);
-                    }
-                }                
-                
+                AddAudioRenderer(channelsCount);
             }   
+        }
+
+        private void AddAudioRenderer(int channelCount)
+        {
+            switch(audioOutputType)
+            {
+                case AudioOutputType.Auto:
+                   VirtualAudioSpeaker defaultSpeaker = CreateVirtualSpeaker(channelCount);
+                   if(defaultSpeaker != null)
+                    {
+                        defaultSpeaker.SetChannelMap(_pc.getChannelMap); 
+                        _renderer.AddVirtualAudioSpeaker(defaultSpeaker, _pc.getInboundChannelCount);
+                    }
+                break;
+
+                case AudioOutputType.AudioSource:
+                    if(_renderAudioSources == null || _renderAudioSources.Count < 1)
+                        throw new Exception("Audio Source not mapped");
+                    foreach (var audioSource in _renderAudioSources)
+                        AddRenderAudioSource(audioSource);
+                break;
+
+                case AudioOutputType.VirtualSpeakers:
+                    VirtualAudioSpeaker speaker = GetVirtualAudioSpeaker();
+                    if(speaker != null)
+                    {
+                        speaker.SetChannelMap(_pc.getChannelMap); 
+                        _renderer.AddVirtualAudioSpeaker(speaker, _pc.getInboundChannelCount);
+                    }
+                    else
+                        throw new Exception("Virtual Speaker not mapped");
+                break;
+            }
+        }
+
+        private VirtualAudioSpeaker CreateVirtualSpeaker(int channelCount)
+        {
+            string prefabName = channelCount == 6 ? "Five_One_Speaker" : "Stereo_Speakers";
+            GameObject obj = Instantiate (Resources.Load(prefabName) as GameObject, audioSpawnLocation);
+            var speaker = obj.GetComponent<VirtualAudioSpeaker>();
+            if(defaultAudioConfiguration != null)
+                speaker.UpdateAudioConfiguration(defaultAudioConfiguration);
+            
+            return speaker;
         }
 
         private VirtualAudioSpeaker GetVirtualAudioSpeaker()
@@ -408,17 +460,9 @@ namespace Dolby.Millicast
             switch (_pc.getInboundChannelCount)
             {
                 case 2:
-                    return virtualAudioSpeakers.Find( x => x.audioChannelType == VirtualSpeakerMode.Stereo);
+                    return OutputAudioSpeakers.stereoVirtualSpeaker;
                 case 6:
-                    VirtualAudioSpeaker speaker6 = virtualAudioSpeakers.Find( x => x.audioChannelType == VirtualSpeakerMode.Mode5point1);
-                    if(speaker6 == null && needsVirtualization)
-                    {
-                        GameObject obj = Instantiate (Resources.Load("Five_One_Speaker") as GameObject, transform);
-                        speaker6 = obj.GetComponent<VirtualAudioSpeaker>();
-                        if(defaultAudioConfiguration != null)
-                            speaker6.UpdateAudioConfiguration(defaultAudioConfiguration);
-                        virtualAudioSpeakers.Add(speaker6);
-                    }
+                    VirtualAudioSpeaker speaker6 = OutputAudioSpeakers.fiveOneVirtualSpeaker;
                     return speaker6;
                 default:
                     return null;
