@@ -243,7 +243,7 @@ namespace Dolby.Millicast
         /// Returns the simulcast layers available for the incoming video stream if its a simulcast stream.
         /// Returns null if the stream is not simulcast.
         /// </summary>
-        private Layer[] GetSimulcastLayers()
+        public Layer[] GetSimulcastLayers()
         {
             if(simulCastInfo != null)
                 return simulCastInfo.Layers;
