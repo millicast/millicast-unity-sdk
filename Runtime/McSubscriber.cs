@@ -116,9 +116,9 @@ namespace Dolby.Millicast
         [SerializeField][DrawIf("audioOutputType", AudioOutputType.Auto)]
         private AudioConfiguration defaultAudioConfiguration;
 
-         [Tooltip("default Audio configuration.")]
+        [Tooltip("Audio Anchor Transform sets the position within the scene where the audio audio rendering will be attached. This can be camera, or a game object, the audio rendering will be pinned to that game object as it moves within the scene")]
         [SerializeField][DrawIf("audioOutputType", AudioOutputType.Auto)]
-        private Transform audioSpawnLocation;
+        private Transform audioAnchorTransform;
         [System.Serializable]
         public class RenderAudioSources
         {
@@ -434,8 +434,10 @@ namespace Dolby.Millicast
 
         private VirtualAudioSpeaker CreateVirtualSpeaker(int channelCount)
         {
+            if(audioAnchorTransform == null)
+                audioAnchorTransform = transform;
             string prefabName = channelCount == 6 ? "Five_One_Speaker" : "Stereo_Speakers";
-            GameObject obj = Instantiate (Resources.Load(prefabName) as GameObject, audioSpawnLocation);
+            GameObject obj = Instantiate (Resources.Load(prefabName) as GameObject, audioAnchorTransform);
             var speaker = obj.GetComponent<VirtualAudioSpeaker>();
             if(defaultAudioConfiguration != null)
                 speaker.UpdateAudioConfiguration(defaultAudioConfiguration);
