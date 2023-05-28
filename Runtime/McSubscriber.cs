@@ -125,6 +125,13 @@ namespace Dolby.Millicast
             public List<AudioSource> audioSources;
         }
 
+        [System.Serializable]
+        public class VirtualSpeakers
+        {
+            public VirtualAudioSpeaker stereoVirtualSpeaker;
+            public VirtualAudioSpeaker fiveOneVirtualSpeaker;
+        }
+
         /// <summary>
         /// Manually set the audio sources to render to. This
         /// is used when you want utilise the Unity Inspector UI.
@@ -134,14 +141,14 @@ namespace Dolby.Millicast
         public RenderAudioSources OutputAudioSources;
 
         [SerializeField][DrawIf("audioOutputType", AudioOutputType.VirtualSpeakers)]
-         public VirtualAudioSpeaker OutputAudioSpeakers;
+        public VirtualSpeakers OutputAudioSpeakers;
 
         private List<AudioSource> _renderAudioSources => OutputAudioSources.audioSources;
         public List<AudioSource> renderAudioSources
         {
             get => this._renderAudioSources;
         }
-        
+
         [Header("\nEvent Listeners :\n")]
         [SerializeField] private SimulcastEvent simulcastEvent;
         private SimulcastInfo simulCastInfo;
@@ -207,7 +214,7 @@ namespace Dolby.Millicast
             // TODO: Need to also add excludedSourceIds and pinnedSourceIds
             payload["streamId"] = streamName;
             payload["sdp"] = desc.sdp;
-            payload["events"] = new string[] { "active", "inactive", "stopped", "viewercount","layers" };
+            payload["events"] = new string[] { "active", "inactive", "stopped", "viewercount", "layers" };
 
             yield return _signaling?.Send(ISignaling.Event.SUBSCRIBE, payload);
         }
@@ -247,7 +254,7 @@ namespace Dolby.Millicast
                         }
                         catch (System.Exception exception)
                         {
-                            Debug.LogError("Failed to parse the Simulcast layers data: "+exception.Message);
+                            Debug.LogError("Failed to parse the Simulcast layers data: " + exception.Message);
                         }
                         break;
                 }
@@ -260,7 +267,7 @@ namespace Dolby.Millicast
         /// </summary>
         public Layer[] GetSimulcastLayers()
         {
-            if(simulCastInfo != null)
+            if (simulCastInfo != null)
                 return simulCastInfo.Layers;
             return null;
         }
@@ -270,12 +277,12 @@ namespace Dolby.Millicast
             string text = "Active Simulcast Data: \n";
             foreach (var item in info.Active)
             {
-                text += "simulcast Id: "+item.Id+" , Bitrate: "+item.Bitrate;
+                text += "simulcast Id: " + item.Id + " , Bitrate: " + item.Bitrate;
                 foreach (var layer in item.Layers)
                 {
-                    text += "\n\t layer: "+layer.TemporalLayerId+", Bitrate: "+layer.Bitrate+", temporal layer id: "+layer.TemporalLayerId+", spatial layer id: "+layer.SpatialLayerId;
-                }  
-                text +="\n";
+                    text += "\n\t layer: " + layer.TemporalLayerId + ", Bitrate: " + layer.Bitrate + ", temporal layer id: " + layer.TemporalLayerId + ", spatial layer id: " + layer.SpatialLayerId;
+                }
+                text += "\n";
             }
             Debug.Log(text);
         }
@@ -321,8 +328,8 @@ namespace Dolby.Millicast
                     Debug.Log("[Subscriber] Received video track");
                     track.OnVideoReceived += (tex) =>
                     {
-                          _renderer.SetTexture(tex);
-                      };
+                        _renderer.SetTexture(tex);
+                    };
                 }
                 if (e.Track is AudioStreamTrack audioTrack)
                 {
@@ -386,11 +393,11 @@ namespace Dolby.Millicast
         private void Update()
         {
             _signaling?.Dispatch();
-            if(_pc != null && _pc.getInboundChannelCount > 0 && channelsCount != _pc.getInboundChannelCount)
+            if (_pc != null && _pc.getInboundChannelCount > 0 && channelsCount != _pc.getInboundChannelCount)
             {
                 channelsCount = _pc.getInboundChannelCount;
                 AddAudioRenderer(channelsCount);
-            }   
+            }
         }
 
         private void AddAudioRenderer(int channelCount)
@@ -398,26 +405,26 @@ namespace Dolby.Millicast
             bool needsVirtualizing = channelCount > AudioHelpers.GetAudioSpeakerModeIntFromEnum(AudioSettings.driverCapabilities) ?
                 true : false;
 
-            switch(audioOutputType)
+            switch (audioOutputType)
             {
                 case AudioOutputType.Auto:
-                   if (needsVirtualizing)
-                   {
-                       VirtualAudioSpeaker defaultSpeaker = CreateVirtualSpeaker(channelCount);
-                       if(defaultSpeaker != null)
-                       {
-                            defaultSpeaker.SetChannelMap(_pc.getChannelMap); 
+                    if (needsVirtualizing)
+                    {
+                        VirtualAudioSpeaker defaultSpeaker = CreateVirtualSpeaker(channelCount);
+                        if (defaultSpeaker != null)
+                        {
+                            defaultSpeaker.SetChannelMap(_pc.getChannelMap);
                             _renderer.AddVirtualAudioSpeaker(defaultSpeaker, _pc.getInboundChannelCount);
-                       }
-                   } else
-                   {
+                        }
+                    } else
+                    {
                         AudioSource audioSource = gameObject.AddComponent<AudioSource>();
                         AddRenderAudioSource(audioSource);
-                   }
-                break;
+                    }
+                    break;
 
                 case AudioOutputType.AudioSource:
-                    if(_renderAudioSources == null || _renderAudioSources.Count < 1)
+                    if (_renderAudioSources == null || _renderAudioSources.Count < 1)
                         throw new Exception("Audio Source not mapped");
 
                     // Audio cannot be played out as is, so we throw an exception
@@ -428,38 +435,52 @@ namespace Dolby.Millicast
 
                     foreach (var audioSource in _renderAudioSources)
                         AddRenderAudioSource(audioSource);
-                break;
+                    break;
 
                 case AudioOutputType.VirtualSpeakers:
-                    if(OutputAudioSpeakers == null)
+                    if (OutputAudioSpeakers == null)
                     {
                         throw new Exception("Virtual Speaker not mapped");
                     }
 
-                    if (OutputAudioSpeakers.GetChannelCount() < channelCount)
+                    var speaker = GetVirtualAudioSpeaker();
+                    if (speaker.GetChannelCount() < channelCount)
                     {
                         throw new Exception($"Virtual Speaker count cannot play incoming channel count {channelCount}");
                     }
 
-                    OutputAudioSpeakers.SetChannelMap(_pc.getChannelMap); 
-                    _renderer.AddVirtualAudioSpeaker(OutputAudioSpeakers, _pc.getInboundChannelCount);
-                break;
+                    speaker.SetChannelMap(_pc.getChannelMap);
+                    _renderer.AddVirtualAudioSpeaker(speaker, _pc.getInboundChannelCount);
+                    break;
             }
         }
 
         private VirtualAudioSpeaker CreateVirtualSpeaker(int channelCount)
         {
-            if(audioAnchorTransform == null)
+            if (audioAnchorTransform == null)
                 audioAnchorTransform = transform;
             string prefabName = channelCount == 6 ? "Five_One_Speaker" : "Stereo_Speakers";
-            GameObject obj = Instantiate (Resources.Load(prefabName) as GameObject, audioAnchorTransform);
+            GameObject obj = Instantiate(Resources.Load(prefabName) as GameObject, audioAnchorTransform);
             var speaker = obj.GetComponent<VirtualAudioSpeaker>();
-            if(defaultAudioConfiguration != null)
+            if (defaultAudioConfiguration != null)
                 speaker.UpdateAudioConfiguration(defaultAudioConfiguration);
-            
+
             return speaker;
         }
 
+        private VirtualAudioSpeaker GetVirtualAudioSpeaker()
+        {
+            switch (_pc.getInboundChannelCount)
+            {
+                case 2:
+                    return OutputAudioSpeakers.stereoVirtualSpeaker;
+                case 6:
+                    VirtualAudioSpeaker speaker6 = OutputAudioSpeakers.fiveOneVirtualSpeaker;
+                    return speaker6;
+                default:
+                    return null;
+            }
+        }
         private void OnDestroy()
         {
             _signaling?.Disconnect();
@@ -510,6 +531,7 @@ namespace Dolby.Millicast
 
             return message + " can't be Empty. Please configure in Credentials Scriptable Object";
         }
+
 
         private void AddRenderTargets()
         {
