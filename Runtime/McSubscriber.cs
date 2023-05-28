@@ -125,12 +125,6 @@ namespace Dolby.Millicast
             public List<AudioSource> audioSources;
         }
 
-        [System.Serializable]
-        public class VirtualSpeakers
-        {
-            public VirtualAudioSpeaker stereoVirtualSpeaker;
-            public VirtualAudioSpeaker fiveOneVirtualSpeaker;
-        }
         /// <summary>
         /// Manually set the audio sources to render to. This
         /// is used when you want utilise the Unity Inspector UI.
@@ -140,7 +134,7 @@ namespace Dolby.Millicast
         public RenderAudioSources OutputAudioSources;
 
         [SerializeField][DrawIf("audioOutputType", AudioOutputType.VirtualSpeakers)]
-         public VirtualSpeakers OutputAudioSpeakers;
+         public VirtualAudioSpeaker OutputAudioSpeakers;
 
         private List<AudioSource> _renderAudioSources => OutputAudioSources.audioSources;
         public List<AudioSource> renderAudioSources
@@ -401,33 +395,54 @@ namespace Dolby.Millicast
 
         private void AddAudioRenderer(int channelCount)
         {
+            bool needsVirtualizing = channelCount > AudioHelpers.GetAudioSpeakerModeIntFromEnum(AudioSettings.driverCapabilities) ?
+                true : false;
+
             switch(audioOutputType)
             {
                 case AudioOutputType.Auto:
-                   VirtualAudioSpeaker defaultSpeaker = CreateVirtualSpeaker(channelCount);
-                   if(defaultSpeaker != null)
-                    {
-                        defaultSpeaker.SetChannelMap(_pc.getChannelMap); 
-                        _renderer.AddVirtualAudioSpeaker(defaultSpeaker, _pc.getInboundChannelCount);
-                    }
+                   if (needsVirtualizing)
+                   {
+                       VirtualAudioSpeaker defaultSpeaker = CreateVirtualSpeaker(channelCount);
+                       if(defaultSpeaker != null)
+                       {
+                            defaultSpeaker.SetChannelMap(_pc.getChannelMap); 
+                            _renderer.AddVirtualAudioSpeaker(defaultSpeaker, _pc.getInboundChannelCount);
+                       }
+                   } else
+                   {
+                        AudioSource audioSource = gameObject.AddComponent<AudioSource>();
+                        AddRenderAudioSource(audioSource);
+                   }
                 break;
 
                 case AudioOutputType.AudioSource:
                     if(_renderAudioSources == null || _renderAudioSources.Count < 1)
                         throw new Exception("Audio Source not mapped");
+
+                    // Audio cannot be played out as is, so we throw an exception
+                    if (needsVirtualizing)
+                    {
+                        throw new Exception("Audio Driver capabilities cannot play out incoming channel count");
+                    }
+
                     foreach (var audioSource in _renderAudioSources)
                         AddRenderAudioSource(audioSource);
                 break;
 
                 case AudioOutputType.VirtualSpeakers:
-                    VirtualAudioSpeaker speaker = GetVirtualAudioSpeaker();
-                    if(speaker != null)
+                    if(OutputAudioSpeakers == null)
                     {
-                        speaker.SetChannelMap(_pc.getChannelMap); 
-                        _renderer.AddVirtualAudioSpeaker(speaker, _pc.getInboundChannelCount);
-                    }
-                    else
                         throw new Exception("Virtual Speaker not mapped");
+                    }
+
+                    if (OutputAudioSpeakers.GetChannelCount() < channelCount)
+                    {
+                        throw new Exception($"Virtual Speaker count cannot play incoming channel count {channelCount}");
+                    }
+
+                    OutputAudioSpeakers.SetChannelMap(_pc.getChannelMap); 
+                    _renderer.AddVirtualAudioSpeaker(OutputAudioSpeakers, _pc.getInboundChannelCount);
                 break;
             }
         }
@@ -443,32 +458,6 @@ namespace Dolby.Millicast
                 speaker.UpdateAudioConfiguration(defaultAudioConfiguration);
             
             return speaker;
-        }
-
-        private VirtualAudioSpeaker GetVirtualAudioSpeaker()
-        {
-            // In the case where the hardware is capable of playing
-            // the incoming number of channels, no need to virtualize.
-
-            bool needsVirtualization = false;
-            int hardwareSupportedChannelCount = AudioHelpers.GetAudioSpeakerModeIntFromEnum(AudioSettings.driverCapabilities);
-            if ( hardwareSupportedChannelCount < _pc.getInboundChannelCount)
-            {
-                needsVirtualization = true;
-            }
-            Debug.Log($"Inbound channel count: {_pc.getInboundChannelCount}");
-            Debug.Log($"Hardware supported channel count: {hardwareSupportedChannelCount}");
-            Debug.Log($"Need to virtualize audio: {needsVirtualization}");
-            switch (_pc.getInboundChannelCount)
-            {
-                case 2:
-                    return OutputAudioSpeakers.stereoVirtualSpeaker;
-                case 6:
-                    VirtualAudioSpeaker speaker6 = OutputAudioSpeakers.fiveOneVirtualSpeaker;
-                    return speaker6;
-                default:
-                    return null;
-            }
         }
 
         private void OnDestroy()
