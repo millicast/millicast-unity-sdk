@@ -10,9 +10,14 @@ namespace Dolby.Millicast
         Stereo,
         [InspectorName("5.1")]
         Mode5point1
+
     }
+
+
+
     public class VirtualAudioSpeaker : MonoBehaviour
     {
+
         public VirtualSpeakerMode audioChannelType;
         [DrawIf("audioChannelType", VirtualSpeakerMode.Mono)] public AudioSource speaker;
         [DrawIf("audioChannelType", VirtualSpeakerMode.Stereo)] public StereoAudio StereoSpeakers;
@@ -33,6 +38,22 @@ namespace Dolby.Millicast
                     return getMonoSpeakers();
             }
         }
+
+        public int GetChannelCount()
+        {
+            switch (audioChannelType)
+            {
+                case VirtualSpeakerMode.Mono:
+                    return 1;
+                case VirtualSpeakerMode.Stereo:
+                    return 2;
+                case VirtualSpeakerMode.Mode5point1:
+                    return 6;
+                default:
+                    return -1;
+            }
+        }
+
         public void SetChannelMap(int[] channelMap)
         {
             this.channelMap = channelMap;
