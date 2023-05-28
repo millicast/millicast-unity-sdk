@@ -17,14 +17,19 @@ public class DrawIfPropertyDrawer : PropertyDrawer
     public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
     {
         if (!ShowMe(property))
-            return 0f;
-    
-        float totalHeight = EditorGUI.GetPropertyHeight(property, label) ;
-        while (property.NextVisible(true) && property.isExpanded)
         {
-            totalHeight += EditorGUI.GetPropertyHeight(property, label, true) ;
+           return 0;
         }
-        return totalHeight;
+           
+        float totalHeight = EditorGUI.GetPropertyHeight(property, label) ;
+        float height = 0;
+        while (property.NextVisible(true) && property.hasVisibleChildren && property.isExpanded)
+        {
+            if (!ShowMe(property))
+                break;
+            height += EditorGUI.GetPropertyHeight(property, label, true) ;
+        }
+        return Mathf.Max(totalHeight, height);
     }
  
     /// <summary>
@@ -40,8 +45,7 @@ public class DrawIfPropertyDrawer : PropertyDrawer
  
         if (comparedField == null)
         {
-            Debug.LogError("Cannot find property with name: " + path);
-            return true;
+            return false;
         }
         bool inverse = drawIf.invert;
 
@@ -56,13 +60,12 @@ public class DrawIfPropertyDrawer : PropertyDrawer
                 return inverse ? false : true;
         }
     }
- 
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
         if (ShowMe(property))
         {
             EditorGUI.PropertyField(position, property, label, true);
-        }        
+        }  
     }
  }
 #endif

@@ -141,6 +141,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b9097106291c4a3cb6e385e04f9966d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  audioConfigurationType: 0
+  audioConfiguration: {fileID: 0}
+  allowChangesToAudioConfig: 0
   minDistance: 10
   maxDistance: 50
   spread: 0
@@ -286,6 +289,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b9097106291c4a3cb6e385e04f9966d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  audioConfigurationType: 0
+  audioConfiguration: {fileID: 0}
+  allowChangesToAudioConfig: 0
   minDistance: 10
   maxDistance: 50
   spread: 0
@@ -348,12 +354,10 @@ MonoBehaviour:
     _lfe: {fileID: 0}
     _surroundRight: {fileID: 0}
     _center: {fileID: 0}
-  SevenOneAudioSpeakers:
-    _frontLeft: {fileID: 0}
-    _frontRight: {fileID: 0}
-    _center: {fileID: 0}
-    _leftSurround: {fileID: 0}
-    _rightSurround: {fileID: 0}
-    _surroundBackLeft: {fileID: 0}
-    _surroundBackRight: {fileID: 0}
+  CustomAudioSpeakers:
+    _left: {fileID: 0}
+    _surroundLeft: {fileID: 0}
+    _right: {fileID: 0}
     _lfe: {fileID: 0}
+    _surroundRight: {fileID: 0}
+    _center: {fileID: 0}

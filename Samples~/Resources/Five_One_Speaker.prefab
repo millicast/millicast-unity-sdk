@@ -53,8 +53,8 @@ AudioSource:
   SpatializePostEffects: 0
   Priority: 128
   DopplerLevel: 1
-  MinDistance: 10
-  MaxDistance: 50
+  MinDistance: 16
+  MaxDistance: 48.85
   Pan2D: 0
   rolloffMode: 0
   BypassEffects: 0
@@ -159,8 +159,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b9097106291c4a3cb6e385e04f9966d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  minDistance: 10
-  maxDistance: 50
+  audioConfigurationType: 1
+  audioConfiguration: {fileID: 0}
+  allowChangesToAudioConfig: 1
+  minDistance: 16
+  maxDistance: 48.85
   spread: 0
   volume: 1
 --- !u!1 &3777371135024496912
@@ -322,6 +325,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b9097106291c4a3cb6e385e04f9966d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  audioConfigurationType: 0
+  audioConfiguration: {fileID: 0}
+  allowChangesToAudioConfig: 0
   minDistance: 10
   maxDistance: 50
   spread: 0
@@ -485,6 +491,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b9097106291c4a3cb6e385e04f9966d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  audioConfigurationType: 0
+  audioConfiguration: {fileID: 0}
+  allowChangesToAudioConfig: 0
   minDistance: 10
   maxDistance: 50
   spread: 0
@@ -551,15 +560,6 @@ MonoBehaviour:
     _lfe: {fileID: 3777371135385056399}
     _surroundRight: {fileID: 3777371135024496913}
     _center: {fileID: 3777371135422021197}
-  SevenOneAudioSpeakers:
-    _frontLeft: {fileID: 0}
-    _frontRight: {fileID: 0}
-    _center: {fileID: 0}
-    _leftSurround: {fileID: 0}
-    _rightSurround: {fileID: 0}
-    _surroundBackLeft: {fileID: 0}
-    _surroundBackRight: {fileID: 0}
-    _lfe: {fileID: 0}
 --- !u!1 &3777371135385056398
 GameObject:
   m_ObjectHideFlags: 0
@@ -719,6 +719,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b9097106291c4a3cb6e385e04f9966d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  audioConfigurationType: 0
+  audioConfiguration: {fileID: 0}
+  allowChangesToAudioConfig: 0
   minDistance: 10
   maxDistance: 50
   spread: 0
@@ -845,7 +848,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 0.0875
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -882,9 +885,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b9097106291c4a3cb6e385e04f9966d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  audioConfigurationType: 0
+  audioConfiguration: {fileID: 11400000, guid: b75dd73923a856b4ca052585037e6b45, type: 2}
+  allowChangesToAudioConfig: 0
   minDistance: 10
   maxDistance: 50
-  spread: 0
+  spread: 31.5
   volume: 1
 --- !u!1 &3777371135638415045
 GameObject:
@@ -1045,6 +1051,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b9097106291c4a3cb6e385e04f9966d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  audioConfigurationType: 0
+  audioConfiguration: {fileID: 0}
+  allowChangesToAudioConfig: 0
   minDistance: 10
   maxDistance: 50
   spread: 0
