@@ -125,13 +125,6 @@ namespace Dolby.Millicast
             public List<AudioSource> audioSources;
         }
 
-        [System.Serializable]
-        public class VirtualSpeakers
-        {
-            public VirtualAudioSpeaker stereoVirtualSpeaker;
-            public VirtualAudioSpeaker fiveOneVirtualSpeaker;
-        }
-
         /// <summary>
         /// Manually set the audio sources to render to. This
         /// is used when you want utilise the Unity Inspector UI.
@@ -141,7 +134,7 @@ namespace Dolby.Millicast
         public RenderAudioSources OutputAudioSources;
 
         [SerializeField][DrawIf("audioOutputType", AudioOutputType.VirtualSpeakers)]
-        public VirtualSpeakers OutputAudioSpeakers;
+        public VirtualAudioSpeaker OutputAudioSpeakers;
 
         private List<AudioSource> _renderAudioSources => OutputAudioSources.audioSources;
         public List<AudioSource> renderAudioSources
@@ -443,14 +436,21 @@ namespace Dolby.Millicast
                         throw new Exception("Virtual Speaker not mapped");
                     }
 
-                    var speaker = GetVirtualAudioSpeaker();
-                    if (speaker.GetChannelCount() < channelCount)
+                    if (OutputAudioSpeakers.GetChannelCount() < channelCount)
                     {
                         throw new Exception($"Virtual Speaker count cannot play incoming channel count {channelCount}");
                     }
 
-                    speaker.SetChannelMap(_pc.getChannelMap);
-                    _renderer.AddVirtualAudioSpeaker(speaker, _pc.getInboundChannelCount);
+                    if (OutputAudioSpeakers.GetChannelCount() > channelCount)
+                    {
+                        OutputAudioSpeakers.StopAll();
+                    }
+
+                    if (channelCount == 6)
+                    {
+                        OutputAudioSpeakers.SetChannelMap(_pc.getChannelMap);
+                    }
+                    _renderer.AddVirtualAudioSpeaker(OutputAudioSpeakers, _pc.getInboundChannelCount);
                     break;
             }
         }
@@ -464,23 +464,10 @@ namespace Dolby.Millicast
             var speaker = obj.GetComponent<VirtualAudioSpeaker>();
             if (defaultAudioConfiguration != null)
                 speaker.UpdateAudioConfiguration(defaultAudioConfiguration);
-
             return speaker;
         }
 
-        private VirtualAudioSpeaker GetVirtualAudioSpeaker()
-        {
-            switch (_pc.getInboundChannelCount)
-            {
-                case 2:
-                    return OutputAudioSpeakers.stereoVirtualSpeaker;
-                case 6:
-                    VirtualAudioSpeaker speaker6 = OutputAudioSpeakers.fiveOneVirtualSpeaker;
-                    return speaker6;
-                default:
-                    return null;
-            }
-        }
+
         private void OnDestroy()
         {
             _signaling?.Disconnect();

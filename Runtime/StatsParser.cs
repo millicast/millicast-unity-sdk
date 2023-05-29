@@ -61,8 +61,11 @@ namespace Dolby.Millicast
                 {
                     if(string.IsNullOrEmpty(inboundStats.codecId))
                     continue;
-                    inboundAudioStreamChannelCount =  getChannelCount(pattern, inboundStats.codecId);
-                    Debug.Log("inound channel count updated:"+inboundAudioStreamChannelCount);
+
+                    var newInboundChannelCount = getChannelCount(pattern, inboundStats.codecId);
+                    if (newInboundChannelCount != inboundAudioStreamChannelCount)
+                        Debug.Log("Inbound channel count updated:"+newInboundChannelCount);
+                    inboundAudioStreamChannelCount = newInboundChannelCount;
                 }
             }
         }

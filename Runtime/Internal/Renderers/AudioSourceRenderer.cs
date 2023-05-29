@@ -39,7 +39,7 @@ namespace Dolby.Millicast
 
     public void AddVirtualAudioSpeaker(VirtualAudioSpeaker speaker, int channelCount)
     {
-        RefreshAudioTrackWithIndex(speaker.getAudioSpeakers(), channelCount);
+        RefreshAudioTrackWithIndex(speaker.getAudioSpeakers(channelCount), channelCount);
     }
     private void RefreshAudioTrackWithIndex(AudioSource[] audiosources, int channelCount)
     {
