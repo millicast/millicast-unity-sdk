@@ -130,6 +130,38 @@ namespace Dolby.Millicast
         {
             public VirtualAudioSpeaker stereoVirtualSpeaker;
             public VirtualAudioSpeaker fiveOneVirtualSpeaker;
+
+            public static string getPrefabName(int channelCount)
+            {
+                switch (channelCount)
+                {
+                    case 2:
+                        return "Stereo_Speakers";
+                    case 6: 
+                        return "Five_One_Speakers"; 
+                    default:
+                        return "";
+                }
+            }
+
+            public VirtualAudioSpeaker GetVirtualAudioSpeaker(int channelCount)
+            {
+                switch (channelCount)
+                {
+                    case 2:
+                        if(stereoVirtualSpeaker == null)
+                            throw new Exception("Stereo Virtual Speaker reference is not assigned in Subscriber component.");
+                        
+                        return stereoVirtualSpeaker;
+                    case 6:
+                        if(fiveOneVirtualSpeaker == null)
+                            throw new Exception("5.1 Virtual Speaker reference is not assigned in Subscriber component.");
+                        
+                        return fiveOneVirtualSpeaker;
+                    default:
+                        return null;
+                }
+            }
         }
 
         /// <summary>
@@ -411,14 +443,18 @@ namespace Dolby.Millicast
                     if (needsVirtualizing)
                     {
                         VirtualAudioSpeaker defaultSpeaker = CreateVirtualSpeaker(channelCount);
-                        if (defaultSpeaker != null)
+                        if (defaultSpeaker == null)
                         {
-                            defaultSpeaker.SetChannelMap(_pc.getChannelMap);
-                            _renderer.AddVirtualAudioSpeaker(defaultSpeaker, _pc.getInboundChannelCount);
+                            throw new Exception($"Virtual Speaker supports stereo and 5.1 streams only. Incoming stream channel count {channelCount} is not supported");
                         }
-                    } else
+
+                        defaultSpeaker.SetChannelMap(_pc.getChannelMap);
+                        _renderer.AddVirtualAudioSpeaker(defaultSpeaker, _pc.getInboundChannelCount);
+                    } 
+                    else
                     {
-                        AudioSource audioSource = gameObject.AddComponent<AudioSource>();
+                        var audioAnchorObject = audioAnchorTransform != null ? audioAnchorTransform.gameObject : gameObject;
+                        AudioSource audioSource = audioAnchorObject.AddComponent<AudioSource>();
                         AddRenderAudioSource(audioSource);
                     }
                     break;
@@ -443,10 +479,10 @@ namespace Dolby.Millicast
                         throw new Exception("Virtual Speaker not mapped");
                     }
 
-                    var speaker = GetVirtualAudioSpeaker();
-                    if (speaker.GetChannelCount() < channelCount)
+                    var speaker = OutputAudioSpeakers.GetVirtualAudioSpeaker(channelCount);
+                    if (speaker == null || speaker.GetChannelCount() < channelCount)
                     {
-                        throw new Exception($"Virtual Speaker count cannot play incoming channel count {channelCount}");
+                        throw new Exception($"Virtual Speaker cannot play incoming channel count {channelCount}");
                     }
 
                     speaker.SetChannelMap(_pc.getChannelMap);
@@ -459,7 +495,12 @@ namespace Dolby.Millicast
         {
             if (audioAnchorTransform == null)
                 audioAnchorTransform = transform;
-            string prefabName = channelCount == 6 ? "Five_One_Speaker" : "Stereo_Speakers";
+            
+            string prefabName = VirtualSpeakers.getPrefabName(channelCount);
+            
+            if(string.IsNullOrEmpty(prefabName))
+                return null;
+
             GameObject obj = Instantiate(Resources.Load(prefabName) as GameObject, audioAnchorTransform);
             var speaker = obj.GetComponent<VirtualAudioSpeaker>();
             if (defaultAudioConfiguration != null)
@@ -468,19 +509,6 @@ namespace Dolby.Millicast
             return speaker;
         }
 
-        private VirtualAudioSpeaker GetVirtualAudioSpeaker()
-        {
-            switch (_pc.getInboundChannelCount)
-            {
-                case 2:
-                    return OutputAudioSpeakers.stereoVirtualSpeaker;
-                case 6:
-                    VirtualAudioSpeaker speaker6 = OutputAudioSpeakers.fiveOneVirtualSpeaker;
-                    return speaker6;
-                default:
-                    return null;
-            }
-        }
         private void OnDestroy()
         {
             _signaling?.Disconnect();
@@ -526,6 +554,7 @@ namespace Dolby.Millicast
 
             if (string.IsNullOrEmpty(credentials.accountId))
                 message = "Stream Account ID";
+            
             if (string.IsNullOrEmpty(credentials.url))
                 message += string.IsNullOrEmpty(message) ? "Subscriber URL" : ", Subscriber URL";
 
@@ -544,7 +573,6 @@ namespace Dolby.Millicast
             {
                 AddVideoRenderTarget(image);
             }
-
         }
 
 

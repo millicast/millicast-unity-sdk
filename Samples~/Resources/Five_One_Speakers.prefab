@@ -31,7 +31,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3777371135319186085}
-  m_RootOrder: 5
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!82 &3777371134497413620
 AudioSource:
@@ -197,7 +197,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3777371135319186085}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!82 &3777371135024496913
 AudioSource:
@@ -363,7 +363,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3777371135319186085}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!82 &3777371135265397235
 AudioSource:
@@ -509,7 +509,7 @@ GameObject:
   - component: {fileID: 3777371135319186085}
   - component: {fileID: 3777371135319186084}
   m_Layer: 0
-  m_Name: Five_One_Speaker
+  m_Name: Five_One_Speakers
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -527,12 +527,12 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 3777371135638415047}
   - {fileID: 3777371135265397244}
-  - {fileID: 3777371135385056392}
-  - {fileID: 3777371135422021198}
-  - {fileID: 3777371135024496914}
   - {fileID: 3777371134497413611}
+  - {fileID: 3777371135422021198}
+  - {fileID: 3777371135385056392}
+  - {fileID: 3777371135638415047}
+  - {fileID: 3777371135024496914}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -555,11 +555,11 @@ MonoBehaviour:
     _right: {fileID: 0}
   FiveOneAudioSpeakers:
     _left: {fileID: 3777371135265397235}
-    _surroundLeft: {fileID: 3777371135638415046}
     _right: {fileID: 3777371134497413620}
-    _lfe: {fileID: 3777371135385056399}
-    _surroundRight: {fileID: 3777371135024496913}
     _center: {fileID: 3777371135422021197}
+    _lfe: {fileID: 3777371135385056399}
+    _surroundLeft: {fileID: 3777371135638415046}
+    _surroundRight: {fileID: 3777371135024496913}
 --- !u!1 &3777371135385056398
 GameObject:
   m_ObjectHideFlags: 0
@@ -591,7 +591,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3777371135319186085}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!82 &3777371135385056399
 AudioSource:
@@ -757,7 +757,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3777371135319186085}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!82 &3777371135422021197
 AudioSource:
@@ -923,7 +923,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3777371135319186085}
-  m_RootOrder: 0
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!82 &3777371135638415046
 AudioSource:

@@ -42,8 +42,20 @@ namespace Dolby.Millicast
         [Range(0f, 1f)]
         private float volume = 1f;
 
+         private bool isUpdated(AudioSource targetAudioSource)
+        {
+            if(targetAudioSource == null)
+                return false;
+            return  minDistance != targetAudioSource.minDistance ||
+                    maxDistance != targetAudioSource.maxDistance ||
+                    volume != targetAudioSource.volume ||
+                    spread != targetAudioSource.spread;
+        }
+
         public void LoadData(AudioSource targetAudioSource)
         {
+            if(!isUpdated(targetAudioSource))
+                return;
             targetAudioSource.volume = volume;
             targetAudioSource.spread = spread;
             targetAudioSource.minDistance = minDistance;
@@ -52,6 +64,8 @@ namespace Dolby.Millicast
 
         public void OverrideData(AudioSource sourceAudio)
         {
+            if(!isUpdated(sourceAudio))
+                return;
             volume = sourceAudio.volume;
             spread = sourceAudio.spread;
             minDistance = sourceAudio.minDistance;
@@ -74,11 +88,11 @@ namespace Dolby.Millicast
     public class FiveOneAudio
     {
         public AudioSource _left;
-        public AudioSource _surroundLeft;
         public AudioSource _right;
-        public AudioSource _lfe;
-        public AudioSource _surroundRight;
         public AudioSource _center;
+        public AudioSource _lfe;
+        public AudioSource _surroundLeft;
+        public AudioSource _surroundRight;
 
         public AudioSource[] getSpeakers()
         {

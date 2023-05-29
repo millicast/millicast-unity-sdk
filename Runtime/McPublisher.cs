@@ -110,9 +110,9 @@ namespace Dolby.Millicast
         private McCredentials _credentials;
         [SerializeField]
         [Tooltip("Publish as soon as the script start")]
-        private bool _publishOnStart = false;
+        private bool _publishOnStart = true;
 
-        public StreamType streamType;
+        public StreamType streamType = StreamType.Both;
 
         [Header("Video Configuration Settings :\n")]
         [Tooltip("Assign VideoConfiguration Scriptable Object reference here.")]
@@ -121,7 +121,7 @@ namespace Dolby.Millicast
 
         public Credentials credentials { get; set; } = null;
         [DrawIf("streamType", StreamType.Audio, true)]
-        public VideoSourceType videoSourceType;
+        public VideoSourceType videoSourceType = VideoSourceType.Camera;
         [DrawIf("streamType", StreamType.Audio, true)][DrawIf("videoSourceType", VideoSourceType.Camera)]
         public Camera _videoSourceCamera;
         //visibility will be controller by the EditorScript=> MyEditorClass
@@ -134,7 +134,7 @@ namespace Dolby.Millicast
         /// </summary>
         [Tooltip("Only use this if the object contains an AudioListener")]    
         [DrawIf("streamType", StreamType.Video, true)]
-        public bool _useAudioListenerAsSource = false;
+        public bool _useAudioListenerAsSource = true;
         [DrawIf("streamType", StreamType.Video, true)]
         [DrawIf("_useAudioListenerAsSource", false)] 
         public AudioSource _audioSource;
@@ -778,13 +778,17 @@ namespace Dolby.Millicast
         }
         private void CheckAudioVideoSource()
         {
-            if (!_useAudioListenerAsSource && _audioSource == null)
+            if(streamType == StreamType.Audio || streamType == StreamType.Both)
             {
-                Debug.Log("Video being published without Audio..");
+                if (!_useAudioListenerAsSource && _audioSource == null)
+                    Debug.Log("Video being published without Audio..");
             }
-            if (_videoTrack == null && ((videoSourceType == VideoSourceType.Camera && _videoSourceCamera == null) ||
+            if(streamType == StreamType.Video || streamType == StreamType.Both)
+            {
+                if (_videoTrack == null && ((videoSourceType == VideoSourceType.Camera && _videoSourceCamera == null) ||
                 (videoSourceType == VideoSourceType.RenderTexture && _videoSourceRenderTexture == null)))
                 throw new Exception("Please assign Video Stream Source in Insector");
+            }
 
         }
 
@@ -817,15 +821,19 @@ namespace Dolby.Millicast
                 SetVideoSource(_videoSourceRenderTexture);
             }
 
-            // Preference for AudioListener first, unless AudioSource is set.
-            if (_useAudioListenerAsSource)
+            if(streamType == StreamType.Audio || streamType == StreamType.Both)
             {
-                SetAudioListenerAsSource();
+                // Preference for AudioListener first, unless AudioSource is set.
+                if (_useAudioListenerAsSource)
+                {
+                    SetAudioListenerAsSource();
+                }
+                else if (_audioSource != null)
+                {
+                    SetAudioSource(_audioSource);
+                }
             }
-            else if (_audioSource != null)
-            {
-                SetAudioSource(_audioSource);
-            }
+            
 
             // Prioritise UI creedntials
 
