@@ -26,6 +26,7 @@ namespace Unity.WebRTC
         {
             if(channelIndex > -1 && channelCount != -1)
             {
+   
                 track._streamRenderer.SetChannelCount(channelCount);
                 track._streamRenderer.AddAudioSource(source, channelIndex);
             }
@@ -99,6 +100,12 @@ namespace Unity.WebRTC
                     AudioSettings.GetDSPBufferSize(out _audioBufferSize, out numBuffers);
                     _sampleRate = AudioSettings.outputSampleRate;
                     _inboundAudioChannelCount = count;
+                    // Disable all the filters
+                    foreach(var filter in _filters)
+                    {
+                        filter.enabled = false;
+                    }
+
                     audioHandler = new AudioSplitHandler(_inboundAudioChannelCount, _audioBufferSize);
                 }
             }
@@ -148,19 +155,24 @@ namespace Unity.WebRTC
             private void AddFilter(AudioSource source, int index)
             {
                 AudioCustomFilter _filter = GetOrAddComponent<AudioCustomFilter>(source.gameObject);
+
                 if(!_filters.Contains(_filter))
                 {
                     _filters.Add(_filter);
                     _filter.hideFlags = HideFlags.HideInInspector;
-                    audioHandler.AddTrack(index);
-                    _filter.audioSplitHandler = audioHandler;
                     _filter.onAudioRead += SetTrackData;
-                    _filter.sender = false;
-                    _filter.channelIndex = index;
-                    _filter.audioSource = source;
-                    source.clip = AudioHelpers.CreateDummyAudioClip("Channel" + index, _sampleRate);
-                    source.Play();
                 }
+                audioHandler.ResetAudioTrackFilters();
+                audioHandler.AddTrack(index);
+                _filter.audioSplitHandler = audioHandler;
+                _filter.sender = false;
+                _filter.channelIndex = index;
+                _filter.audioSource = source;
+                _filter.enabled = true;
+                source.Stop();
+                GameObject.Destroy(source.clip);
+                source.clip = AudioHelpers.CreateDummyAudioClip("Channel" + index, _sampleRate);
+                source.Play();
             }
 
             public AudioStreamRenderer(AudioStreamTrack track)
