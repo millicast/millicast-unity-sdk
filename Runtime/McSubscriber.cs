@@ -69,7 +69,7 @@ namespace Dolby.Millicast
         /// </summary>
         [SerializeField]
         [Tooltip("Subscribe as soon as the script starts")]
-        private bool _subscribeOnStart = false;
+        private bool _subscribeOnStart = true;
 
         /// <summary>
         /// If the current object contains a mesh renderer,
