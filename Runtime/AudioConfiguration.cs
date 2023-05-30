@@ -100,4 +100,21 @@ namespace Dolby.Millicast
            return speakers;
         }
     }
+
+     [System.Serializable]
+    public class CustomAudio
+    {
+        public AudioSource _1;
+        public AudioSource _2;
+        public AudioSource _3;
+        public AudioSource _4;
+        public AudioSource _5;
+        public AudioSource _6;
+
+        public AudioSource[] getSpeakers()
+        {
+           AudioSource[] speakers =  {_1, _5, _2, _3, _4, _6};
+           return speakers;
+        }
+    }
 }

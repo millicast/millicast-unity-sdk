@@ -10,7 +10,8 @@ namespace Dolby.Millicast
         Mono,
         Stereo,
         [InspectorName("5.1")]
-        Mode5point1
+        Mode5point1,
+        Custom
 
     }
 
@@ -23,6 +24,7 @@ namespace Dolby.Millicast
         [DrawIf("audioChannelType", VirtualSpeakerMode.Mono)] public AudioSource speaker;
         [DrawIf("audioChannelType", VirtualSpeakerMode.Stereo)] public StereoAudio StereoSpeakers;
         [DrawIf("audioChannelType", VirtualSpeakerMode.Mode5point1)] public FiveOneAudio FiveOneAudioSpeakers;
+        [DrawIf("audioChannelType", VirtualSpeakerMode.Custom)] public CustomAudio CustomAudioSpeakers;
 
         private int[] channelMap;
         public AudioSource[] getAudioSpeakers(int channelCount)
@@ -42,6 +44,16 @@ namespace Dolby.Millicast
                         return getMonoSpeakers();
                     }
                     return getFiveOneSpeakers();
+                case VirtualSpeakerMode.Custom:
+                    if (channelCount == 2)
+                    {
+                        return getStereoSpeakers();
+                    } 
+                    else if (channelCount == 1)
+                    {
+                        return getMonoSpeakers();
+                    }
+                    return getFiveOneSpeakers();
                 default:
                     return getMonoSpeakers();
             }
@@ -56,6 +68,8 @@ namespace Dolby.Millicast
                 case VirtualSpeakerMode.Stereo:
                     return 2;
                 case VirtualSpeakerMode.Mode5point1:
+                    return 6;
+                 case VirtualSpeakerMode.Custom:
                     return 6;
                 default:
                     return -1;
@@ -78,8 +92,21 @@ namespace Dolby.Millicast
 
         private AudioSource[] getMonoSpeakers()
         {
-            AudioSource[] speakers = {speaker};
-            return speakers;
+             if (audioChannelType == VirtualSpeakerMode.Mode5point1)
+            {
+                 AudioSource[] monospeaker = {FiveOneAudioSpeakers._center};
+                return monospeaker;
+            }
+             if (audioChannelType == VirtualSpeakerMode.Custom)
+            {
+                 AudioSource[] monospeaker = {CustomAudioSpeakers._1};
+                return monospeaker;
+            } 
+            else
+            {
+                AudioSource[] speakers = {speaker};
+                return speakers;
+            }
         }
 
         private AudioSource[] getStereoSpeakers()
@@ -89,7 +116,14 @@ namespace Dolby.Millicast
                 AudioSource[] speakers = { FiveOneAudioSpeakers._left, FiveOneAudioSpeakers._right };
                 //updateSpeakerName(speakers);
                 return speakers;
-            } else
+            }
+             if (audioChannelType == VirtualSpeakerMode.Custom)
+            {
+                AudioSource[] speakers = { CustomAudioSpeakers._1, CustomAudioSpeakers._2};
+                //updateSpeakerName(speakers);
+                return speakers;
+            } 
+            else
             {
                 AudioSource[] speakers = {StereoSpeakers._left, StereoSpeakers._right};
                 updateSpeakerName(speakers);
@@ -101,7 +135,7 @@ namespace Dolby.Millicast
         private void updateSpeakerName(AudioSource[] sourceArray)
         {
             // Rendering stereo to 
-            if (sourceArray.Length == 2 && audioChannelType == VirtualSpeakerMode.Mode5point1)
+            if (sourceArray.Length == 2 && (audioChannelType == VirtualSpeakerMode.Mode5point1 || audioChannelType == VirtualSpeakerMode.Custom))
             {
                 sourceArray[0].gameObject.name = "left";
                 sourceArray[1].gameObject.name = "right";
@@ -200,6 +234,8 @@ namespace Dolby.Millicast
                         return StereoSpeakers.getSpeakers();
                     case VirtualSpeakerMode.Mode5point1:
                         return FiveOneAudioSpeakers.getSpeakers();
+                    case VirtualSpeakerMode.Custom:
+                        return CustomAudioSpeakers.getSpeakers();
                     default:
                         return getMonoSpeakers();
                 }
