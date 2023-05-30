@@ -444,13 +444,12 @@ namespace Dolby.Millicast
                     {
                         if (_defaultAudioSource == null)
                         {
-                            if (defaultAudioConfiguration == null)
-                            {
-                                throw new Exception("Default audio configuration cannot be null in Auto mode!");
-                            }
                             var audioAnchorObject = audioAnchorTransform != null ? audioAnchorTransform.gameObject : gameObject;
                             _defaultAudioSource = audioAnchorObject.AddComponent<AudioSource>();
-                            defaultAudioConfiguration.LoadData(_defaultAudioSource);
+                            if (defaultAudioConfiguration != null)
+                            {
+                                defaultAudioConfiguration.LoadData(_defaultAudioSource);
+                            }
                         }
 
                         if (_defaultAudioSpeaker != null)
