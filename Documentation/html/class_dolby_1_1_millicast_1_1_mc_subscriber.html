@@ -74,7 +74,9 @@ $(function() {
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="#properties">Properties</a> &#124;
 <a href="#events">Events</a> &#124;
 <a href="class_dolby_1_1_millicast_1_1_mc_subscriber-members.html">List of all members</a>  </div>
@@ -91,6 +93,11 @@ Inheritance diagram for Dolby.Millicast.McSubscriber:</div>
   <img src="class_dolby_1_1_millicast_1_1_mc_subscriber.png" alt=""/>
  </div></div>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_dolby_1_1_millicast_1_1_mc_subscriber_1_1_render_audio_sources.html">RenderAudioSources</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ae51e6115efab0f368e9b88c4885f717a"><td class="memItemLeft" align="right" valign="top"><a id="ae51e6115efab0f368e9b88c4885f717a" name="ae51e6115efab0f368e9b88c4885f717a"></a>
@@ -102,6 +109,13 @@ delegate void&#160;</td><td class="memItemRight" valign="bottom"><b>DelegateOnVi
 <tr class="memitem:aa9d26e33453ab0ed74e5926b23eae23b"><td class="memItemLeft" align="right" valign="top"><a id="aa9d26e33453ab0ed74e5926b23eae23b" name="aa9d26e33453ab0ed74e5926b23eae23b"></a>
 delegate void&#160;</td><td class="memItemRight" valign="bottom"><b>DelegateOnConnectionError</b> (<a class="el" href="class_dolby_1_1_millicast_1_1_mc_subscriber.html">McSubscriber</a> subscribe, string message)</td></tr>
 <tr class="separator:aa9d26e33453ab0ed74e5926b23eae23b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0a338e8183c16994b2d6896b8824a73b"><td class="memItemLeft" align="right" valign="top"><a id="a0a338e8183c16994b2d6896b8824a73b" name="a0a338e8183c16994b2d6896b8824a73b"></a>
+delegate void&#160;</td><td class="memItemRight" valign="bottom"><b>DelegateOnLayerEvent</b> (<a class="el" href="class_dolby_1_1_millicast_1_1_mc_subscriber.html">McSubscriber</a> subscribe, <a class="el" href="class_dolby_1_1_millicast_1_1_simulcast_info.html">SimulcastInfo</a> info)</td></tr>
+<tr class="separator:a0a338e8183c16994b2d6896b8824a73b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6ff94403b68bc4ad758254d7fc6e291c"><td class="memItemLeft" align="right" valign="top"><a id="a6ff94403b68bc4ad758254d7fc6e291c" name="a6ff94403b68bc4ad758254d7fc6e291c"></a>
+<a class="el" href="class_dolby_1_1_millicast_1_1_layer.html">Layer</a>[]&#160;</td><td class="memItemRight" valign="bottom"><b>GetSimulcastLayers</b> ()</td></tr>
+<tr class="memdesc:a6ff94403b68bc4ad758254d7fc6e291c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the simulcast layers available for the incoming video stream if its a simulcast stream. Returns null if the stream is not simulcast. <br /></td></tr>
+<tr class="separator:a6ff94403b68bc4ad758254d7fc6e291c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1746e21bda29fd56dc114a3a864207ff"><td class="memItemLeft" align="right" valign="top"><a id="a1746e21bda29fd56dc114a3a864207ff" name="a1746e21bda29fd56dc114a3a864207ff"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>UpdateMeshRendererMaterial</b> ()</td></tr>
 <tr class="memdesc:a1746e21bda29fd56dc114a3a864207ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">This will render incoming streams onto the mesh renderer of this object, if it exists. <br /></td></tr>
@@ -137,6 +151,22 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>UnSubscribe</b> ()</t
 <tr class="memitem:a10db3bb374d164bb3708880fa996b616"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_dolby_1_1_millicast_1_1_mc_subscriber.html#a10db3bb374d164bb3708880fa996b616">RemoveRenderAudioSource</a> (AudioSource source)</td></tr>
 <tr class="memdesc:a10db3bb374d164bb3708880fa996b616"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove an audio source so that it stops rendering.  <br /></td></tr>
 <tr class="separator:a10db3bb374d164bb3708880fa996b616"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a374cf4ba15b61ac7ec424a73f1aab305"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_dolby_1_1_millicast_1_1_mc_subscriber.html#a374cf4ba15b61ac7ec424a73f1aab305">SetSimulcastLayer</a> (<a class="el" href="class_dolby_1_1_millicast_1_1_layer.html">Layer</a> layer)</td></tr>
+<tr class="memdesc:a374cf4ba15b61ac7ec424a73f1aab305"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set a simulcast layer.  <br /></td></tr>
+<tr class="separator:a374cf4ba15b61ac7ec424a73f1aab305"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
+Public Attributes</h2></td></tr>
+<tr class="memitem:a6491855e6e63b5f0d9bf4771076809d2"><td class="memItemLeft" align="right" valign="top"><a id="a6491855e6e63b5f0d9bf4771076809d2" name="a6491855e6e63b5f0d9bf4771076809d2"></a>
+AudioOutputType&#160;</td><td class="memItemRight" valign="bottom"><b>audioOutputType</b></td></tr>
+<tr class="separator:a6491855e6e63b5f0d9bf4771076809d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a928958bc821bc4a813cc9d9b74a4d241"><td class="memItemLeft" align="right" valign="top"><a id="a928958bc821bc4a813cc9d9b74a4d241" name="a928958bc821bc4a813cc9d9b74a4d241"></a>
+<a class="el" href="class_dolby_1_1_millicast_1_1_mc_subscriber_1_1_render_audio_sources.html">RenderAudioSources</a>&#160;</td><td class="memItemRight" valign="bottom"><b>OutputAudioSources</b></td></tr>
+<tr class="memdesc:a928958bc821bc4a813cc9d9b74a4d241"><td class="mdescLeft">&#160;</td><td class="mdescRight">Manually set the audio sources to render to. This is used when you want utilise the Unity Inspector UI. <br /></td></tr>
+<tr class="separator:a928958bc821bc4a813cc9d9b74a4d241"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a790219b8bd48823a91379f9fc577262f"><td class="memItemLeft" align="right" valign="top"><a id="a790219b8bd48823a91379f9fc577262f" name="a790219b8bd48823a91379f9fc577262f"></a>
+VirtualAudioSpeaker&#160;</td><td class="memItemRight" valign="bottom"><b>OutputAudioSpeakers</b></td></tr>
+<tr class="separator:a790219b8bd48823a91379f9fc577262f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="properties" name="properties"></a>
 Properties</h2></td></tr>
@@ -173,6 +203,10 @@ DelegateSubscriber&#160;</td><td class="memItemRight" valign="bottom"><b>OnSubsc
 DelegateOnViewerCount&#160;</td><td class="memItemRight" valign="bottom"><b>OnViewerCount</b></td></tr>
 <tr class="memdesc:a448ea75d6d5ba6ad92d08159e0390c63"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when the viewer count has been updated. <br /></td></tr>
 <tr class="separator:a448ea75d6d5ba6ad92d08159e0390c63"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae164b54fa5b4007722c6ccac8ce119f6"><td class="memItemLeft" align="right" valign="top"><a id="ae164b54fa5b4007722c6ccac8ce119f6" name="ae164b54fa5b4007722c6ccac8ce119f6"></a>
+DelegateOnLayerEvent&#160;</td><td class="memItemRight" valign="bottom"><b>OnSimulcastlayerInfo</b></td></tr>
+<tr class="memdesc:ae164b54fa5b4007722c6ccac8ce119f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when the Simulcast Layers data event triggered. <br /></td></tr>
+<tr class="separator:ae164b54fa5b4007722c6ccac8ce119f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afa6ab05b191ebc72e92a52fbf9e28703"><td class="memItemLeft" align="right" valign="top"><a id="afa6ab05b191ebc72e92a52fbf9e28703" name="afa6ab05b191ebc72e92a52fbf9e28703"></a>
 DelegateOnConnectionError&#160;</td><td class="memItemRight" valign="bottom"><b>OnConnectionError</b></td></tr>
 <tr class="memdesc:afa6ab05b191ebc72e92a52fbf9e28703"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when the there is a connection error to the service. <br /></td></tr>
@@ -332,6 +366,32 @@ DelegateOnConnectionError&#160;</td><td class="memItemRight" valign="bottom"><b>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">image</td><td>A Unity RawImage. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a374cf4ba15b61ac7ec424a73f1aab305" name="a374cf4ba15b61ac7ec424a73f1aab305"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a374cf4ba15b61ac7ec424a73f1aab305">&#9670;&#160;</a></span>SetSimulcastLayer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Dolby.Millicast.McSubscriber.SetSimulcastLayer </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="class_dolby_1_1_millicast_1_1_layer.html">Layer</a>&#160;</td>
+          <td class="paramname"><em>layer</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Set a simulcast layer. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">layer</td><td>Expects Layer object which can be found in Layers class in SimulcastInfo. </td></tr>
   </table>
   </dd>
 </dl>
