@@ -19,6 +19,9 @@ namespace Unity.WebRTC
         /// <param name="track"></param>
          public static void SetTrack(this AudioSource source, AudioStreamTrack track)
         {
+            // We currently do not support adding regular audio source and virtual audio
+            // sources, so disable all channel filters here
+            track._streamRenderer.DisableChannelFilters();
             track._streamRenderer.Source = source;
         }
 
@@ -26,6 +29,7 @@ namespace Unity.WebRTC
         {
             if(channelIndex > -1 && channelCount != -1)
             {
+                track._streamRenderer.DisableRegularFilters();
                 track._streamRenderer.SetChannelCount(channelCount);
                 track._streamRenderer.AddAudioSource(source, channelIndex);
             }
@@ -85,6 +89,8 @@ namespace Unity.WebRTC
 
             private AudioSource _audioSource;
             private List<AudioCustomFilter> _filters = new List<AudioCustomFilter>();
+            private List<AudioCustomFilter> _channelFilters = new List<AudioCustomFilter>();
+
             private AudioStreamTrack _track;
             private int _inboundAudioChannelCount = -1;
 
@@ -99,6 +105,11 @@ namespace Unity.WebRTC
                     AudioSettings.GetDSPBufferSize(out _audioBufferSize, out numBuffers);
                     _sampleRate = AudioSettings.outputSampleRate;
                     _inboundAudioChannelCount = count;
+                    // Disable all the filters (both regular and virtual)
+                    // as we might be playing out stereo in a 5.1 setup 
+                    DisableRegularFilters();
+                    DisableChannelFilters();
+
                     audioHandler = new AudioSplitHandler(_inboundAudioChannelCount, _audioBufferSize);
                 }
             }
@@ -119,6 +130,22 @@ namespace Unity.WebRTC
                 }
             }
 
+            internal void DisableRegularFilters()
+            {
+                foreach(var filter in _filters)
+                {
+                    filter.enabled = false;
+                }
+            }
+
+            internal void DisableChannelFilters()
+            {
+                foreach(var filter in _channelFilters)
+                {
+                    filter.enabled = false;
+                }
+            }
+
             public void AddAudioSource(AudioSource source, int index)
             {
                 AddFilter(source, index);
@@ -135,6 +162,7 @@ namespace Unity.WebRTC
             private void AddFilter(AudioSource source)
             {
                 AudioCustomFilter _filter = GetOrAddComponent<AudioCustomFilter>(source.gameObject);
+                _filter.enabled = true;
                 if(!_filters.Contains(_filter))
                 {
                     _filters.Add(_filter);
@@ -148,19 +176,24 @@ namespace Unity.WebRTC
             private void AddFilter(AudioSource source, int index)
             {
                 AudioCustomFilter _filter = GetOrAddComponent<AudioCustomFilter>(source.gameObject);
-                if(!_filters.Contains(_filter))
+
+                if (!_channelFilters.Contains(_filter))
                 {
-                    _filters.Add(_filter);
+                    _channelFilters.Add(_filter);
                     _filter.hideFlags = HideFlags.HideInInspector;
-                    audioHandler.AddTrack(index);
-                    _filter.audioSplitHandler = audioHandler;
                     _filter.onAudioRead += SetTrackData;
-                    _filter.sender = false;
-                    _filter.channelIndex = index;
-                    _filter.audioSource = source;
-                    source.clip = AudioHelpers.CreateDummyAudioClip("Channel" + index, _sampleRate);
-                    source.Play();
                 }
+                audioHandler.ResetAudioTrackFilters();
+                audioHandler.AddTrack(index);
+                _filter.audioSplitHandler = audioHandler;
+                _filter.sender = false;
+                _filter.channelIndex = index;
+                _filter.audioSource = source;
+                _filter.enabled = true;
+                source.Stop();
+                GameObject.Destroy(source.clip);
+                source.clip = AudioHelpers.CreateDummyAudioClip("Channel" + index, _sampleRate);
+                source.Play();
             }
 
             public AudioStreamRenderer(AudioStreamTrack track)
@@ -201,10 +234,13 @@ namespace Unity.WebRTC
                     foreach (var filter in _filters)
                     {
                         filter.onAudioRead -= SetData;
+                        WebRTC.DestroyOnMainThread(filter);
+                    }
+                    foreach (var filter in _channelFilters)
+                    {
                         filter.onAudioRead -= SetTrackData;
                         WebRTC.DestroyOnMainThread(filter);
                     }
-                    
                 }
                 this.disposed = true;
                 GC.SuppressFinalize(this);

@@ -39,7 +39,7 @@ namespace Dolby.Millicast
 
     public void AddVirtualAudioSpeaker(VirtualAudioSpeaker speaker, int channelCount)
     {
-        RefreshAudioTrackWithIndex(speaker.getAudioSpeakers(), channelCount);
+        RefreshAudioTrackWithIndex(speaker.getAudioSpeakers(channelCount), channelCount);
     }
     private void RefreshAudioTrackWithIndex(AudioSource[] audiosources, int channelCount)
     {
@@ -64,7 +64,6 @@ namespace Dolby.Millicast
       _renderAudioSources.Remove(source);
       if (_renderAudioTrack != null)
       {
-        source.SetTrack(null);
         source.Stop();
       }
     }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -24,7 +25,7 @@ namespace Dolby.Millicast
         [DrawIf("audioChannelType", VirtualSpeakerMode.Mode5point1)] public FiveOneAudio FiveOneAudioSpeakers;
 
         private int[] channelMap;
-        public AudioSource[] getAudioSpeakers()
+        public AudioSource[] getAudioSpeakers(int channelCount)
         {
             switch(audioChannelType)
             {
@@ -33,6 +34,13 @@ namespace Dolby.Millicast
                 case VirtualSpeakerMode.Stereo:
                     return StereoSpeakers.getSpeakers();
                 case VirtualSpeakerMode.Mode5point1:
+                    if (channelCount == 2)
+                    {
+                        return getStereoSpeakers();
+                    } else if (channelCount == 1)
+                    {
+                        return getMonoSpeakers();
+                    }
                     return getFiveOneSpeakers();
                 default:
                     return getMonoSpeakers();
@@ -76,18 +84,36 @@ namespace Dolby.Millicast
 
         private AudioSource[] getStereoSpeakers()
         {
-            AudioSource[] speakers = {StereoSpeakers._left, StereoSpeakers._right};
-            updateSpeakerName(speakers);
-            return speakers;
+            if (audioChannelType == VirtualSpeakerMode.Mode5point1)
+            {
+                AudioSource[] speakers = { FiveOneAudioSpeakers._left, FiveOneAudioSpeakers._right };
+                //updateSpeakerName(speakers);
+                return speakers;
+            } else
+            {
+                AudioSource[] speakers = {StereoSpeakers._left, StereoSpeakers._right};
+                updateSpeakerName(speakers);
+                return speakers;
+            }
         }
+
 
         private void updateSpeakerName(AudioSource[] sourceArray)
         {
-             for(int i =0; i < sourceArray.Length; i++)
+            // Rendering stereo to 
+            if (sourceArray.Length == 2 && audioChannelType == VirtualSpeakerMode.Mode5point1)
+            {
+                sourceArray[0].gameObject.name = "left";
+                sourceArray[1].gameObject.name = "right";
+                return;
+            }
+
+            for(int i =0; i < sourceArray.Length; i++)
             {
                 sourceArray[i].gameObject.name = getspeakername(i);
             }
         }
+
         private int getChannelIndex(int orderIndex)
         {
             if(audioChannelType == VirtualSpeakerMode.Mode5point1)
@@ -162,6 +188,28 @@ namespace Dolby.Millicast
                 }
             }
             return "invalid";
+        }
+
+        internal void StopAll()
+        {
+            Func<AudioSource[]> speakers = () => 
+            {
+                switch(audioChannelType)
+                {
+                    case VirtualSpeakerMode.Stereo:
+                        return StereoSpeakers.getSpeakers();
+                    case VirtualSpeakerMode.Mode5point1:
+                        return FiveOneAudioSpeakers.getSpeakers();
+                    default:
+                        return getMonoSpeakers();
+                }
+            };
+
+            foreach(var audioSource in speakers())
+            {
+                audioSource.Stop();
+            }
+
         }
     }
 }

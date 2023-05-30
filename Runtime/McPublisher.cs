@@ -27,11 +27,12 @@ namespace Dolby.Millicast
         Camera,
         RenderTexture
     }
+
     public enum StreamType
     {
+        [InspectorName("Video + Audio")]Both,
         [InspectorName("Video Only")] Video,
         [InspectorName("Audio Only")] Audio,
-        [InspectorName("Video + Audio")]Both
     }
 
     /// <summary>
@@ -112,7 +113,8 @@ namespace Dolby.Millicast
         [Tooltip("Publish as soon as the script start")]
         private bool _publishOnStart = true;
 
-        public StreamType streamType = StreamType.Both;
+        [SerializeField]
+        private StreamType streamType;
 
         [Header("Video Configuration Settings :\n")]
         [Tooltip("Assign VideoConfiguration Scriptable Object reference here.")]
@@ -120,13 +122,18 @@ namespace Dolby.Millicast
         public VideoConfiguration videoConfigData { get => _videoConfigData; }
 
         public Credentials credentials { get; set; } = null;
+
         [DrawIf("streamType", StreamType.Audio, true)]
-        public VideoSourceType videoSourceType = VideoSourceType.Camera;
+        [SerializeField]
+        private VideoSourceType videoSourceType;
+
+        [SerializeField]
         [DrawIf("streamType", StreamType.Audio, true)][DrawIf("videoSourceType", VideoSourceType.Camera)]
-        public Camera _videoSourceCamera;
+        private Camera _videoSourceCamera;
         //visibility will be controller by the EditorScript=> MyEditorClass
         [DrawIf("streamType", StreamType.Audio, true)][DrawIf("videoSourceType", VideoSourceType.RenderTexture)]
-        public RenderTexture _videoSourceRenderTexture;
+        [SerializeField]
+        private RenderTexture _videoSourceRenderTexture;
         /// <summary>
         /// Whether or not to use the audio listener as a source to publishing. This
         /// is a UI setting. If the game object does not contain an AudioListener, 
@@ -134,10 +141,13 @@ namespace Dolby.Millicast
         /// </summary>
         [Tooltip("Only use this if the object contains an AudioListener")]    
         [DrawIf("streamType", StreamType.Video, true)]
-        public bool _useAudioListenerAsSource = true;
+
+	[SerializeField]
+        private bool _useAudioListenerAsSource = true;
         [DrawIf("streamType", StreamType.Video, true)]
-        [DrawIf("_useAudioListenerAsSource", false)] 
-        public AudioSource _audioSource;
+        [DrawIf("_useAudioListenerAsSource", false)]
+        [SerializeField]
+        private AudioSource _audioSource;
         
         [SerializeField] private bool enableMultiSource;
         [SerializeField][DrawIf(nameof(enableMultiSource), true)]

@@ -306,7 +306,7 @@ namespace Dolby.Millicast
             yield return OnCoroutineRunRequested?.Invoke(parser.CheckStats());
             yield return new WaitForSeconds(1f);
         }
-        while(getInboundChannelCount == -1);
+        while(true);
     }
 
     public int getInboundChannelCount 

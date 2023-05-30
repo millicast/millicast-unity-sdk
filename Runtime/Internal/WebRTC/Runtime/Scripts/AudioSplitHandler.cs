@@ -21,6 +21,7 @@ namespace Unity.WebRTC
         {
             lock(audioTrackLock)
             {
+                if (audioTrackDictionary.ContainsKey(index)) return;
                 audioTrackDictionary.Add(index, new AudioTrackFilter(outputBufferSize));
             }
             

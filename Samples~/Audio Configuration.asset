@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2f49874b6e23b944a4c84c010a456ce, type: 3}
   m_Name: Audio Configuration
   m_EditorClassIdentifier: 
-  minDistance: 1
-  maxDistance: 5
+  minDistance: 10
+  maxDistance: 50
   spread: 0
   volume: 1
