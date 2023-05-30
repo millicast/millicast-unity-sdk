@@ -64,7 +64,6 @@ namespace Dolby.Millicast
       _renderAudioSources.Remove(source);
       if (_renderAudioTrack != null)
       {
-        source.SetTrack(null);
         source.Stop();
       }
     }

@@ -136,6 +136,8 @@ namespace Dolby.Millicast
         [SerializeField][DrawIf("audioOutputType", AudioOutputType.VirtualSpeakers)]
         public VirtualAudioSpeaker OutputAudioSpeakers;
 
+        private VirtualAudioSpeaker _defaultAudioSpeaker;
+        private AudioSource _defaultAudioSource;
         private List<AudioSource> _renderAudioSources => OutputAudioSources.audioSources;
         public List<AudioSource> renderAudioSources
         {
@@ -403,16 +405,42 @@ namespace Dolby.Millicast
                 case AudioOutputType.Auto:
                     if (needsVirtualizing)
                     {
+                        if (_defaultAudioSource != null)
+                        {
+                            RemoveRenderAudioSource(_defaultAudioSource);
+                        }
+
                         VirtualAudioSpeaker defaultSpeaker = CreateVirtualSpeaker(channelCount);
                         if (defaultSpeaker != null)
                         {
-                            defaultSpeaker.SetChannelMap(_pc.getChannelMap);
+                            if (channelCount == 6)
+                                defaultSpeaker.SetChannelMap(_pc.getChannelMap);
+
+                            if (defaultSpeaker.GetChannelCount() > channelCount)
+                            {
+                                defaultSpeaker.StopAll();
+                            }
+
                             _renderer.AddVirtualAudioSpeaker(defaultSpeaker, _pc.getInboundChannelCount);
                         }
                     } else
                     {
-                        AudioSource audioSource = gameObject.AddComponent<AudioSource>();
-                        AddRenderAudioSource(audioSource);
+                        if (_defaultAudioSource == null)
+                        {
+                            if (defaultAudioConfiguration == null)
+                            {
+                                throw new Exception("Default audio configuration cannot be null in Auto mode!");
+                            }
+                            _defaultAudioSource = gameObject.AddComponent<AudioSource>();
+                            defaultAudioConfiguration.LoadData(_defaultAudioSource);
+                        }
+
+                        if (_defaultAudioSpeaker != null)
+                        {
+                            _defaultAudioSpeaker.StopAll();
+                        }
+
+                        AddRenderAudioSource(_defaultAudioSource);
                     }
                     break;
 
@@ -457,14 +485,22 @@ namespace Dolby.Millicast
 
         private VirtualAudioSpeaker CreateVirtualSpeaker(int channelCount)
         {
+            // No need to recreate an audio speaker if
+            // there is an existing one that supports the incoming
+            // channel count
+            if (_defaultAudioSpeaker != null && channelCount < _defaultAudioSpeaker.GetChannelCount())
+                return _defaultAudioSpeaker;
+            else
+                GameObject.Destroy(_defaultAudioSpeaker);
+
             if (audioAnchorTransform == null)
                 audioAnchorTransform = transform;
             string prefabName = channelCount == 6 ? "Five_One_Speaker" : "Stereo_Speakers";
             GameObject obj = Instantiate(Resources.Load(prefabName) as GameObject, audioAnchorTransform);
-            var speaker = obj.GetComponent<VirtualAudioSpeaker>();
+            _defaultAudioSpeaker = obj.GetComponent<VirtualAudioSpeaker>();
             if (defaultAudioConfiguration != null)
-                speaker.UpdateAudioConfiguration(defaultAudioConfiguration);
-            return speaker;
+                _defaultAudioSpeaker.UpdateAudioConfiguration(defaultAudioConfiguration);
+            return _defaultAudioSpeaker;
         }
 
 
