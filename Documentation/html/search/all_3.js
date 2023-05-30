@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['getavailablevideocodecs_0',['GetAvailableVideoCodecs',['../class_dolby_1_1_millicast_1_1_capabilities.html#af41269de1fb758508e7a4b9a149f3822',1,'Dolby::Millicast::Capabilities']]],
-  ['getfirstavailablevideocodec_1',['GetFirstAvailableVideoCodec',['../class_dolby_1_1_millicast_1_1_capabilities.html#a0bedfe6b80f9f34d460b824b86df47fb',1,'Dolby::Millicast::Capabilities']]],
-  ['getmaximumsupportedresolution_2',['GetMaximumSupportedResolution',['../class_dolby_1_1_millicast_1_1_capabilities.html#ae6952422feb95da4148fcd73fe8d2553',1,'Dolby::Millicast::Capabilities']]]
+  ['fiveoneaudio_0',['FiveOneAudio',['../class_dolby_1_1_millicast_1_1_five_one_audio.html',1,'Dolby::Millicast']]]
 ];
