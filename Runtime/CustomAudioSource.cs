@@ -25,10 +25,12 @@ public class CustomAudioSource : MonoBehaviour
     [SerializeField]
     [DrawIf("audioConfigurationType", ConfigType.Use_Audio_Configuration)][Tooltip("If enabled, changes done to Audio Source will be updated in the Audio Configuration")]
     public bool allowChangesToAudioConfig;
+
+    [HideInInspector] public bool allowChangesToAudioSource = true;
     
 
     [SerializeField]
-    [DrawIf("audioConfigurationType", ConfigType.Manual)][Tooltip("Min Distance")]
+    [DrawIf("allowChangesToAudioSource", true)][Tooltip("Min Distance")]
     [Range(1f, 500f)]
     private float minDistance = 1f;
 
@@ -43,7 +45,7 @@ public class CustomAudioSource : MonoBehaviour
     }
 
     [SerializeField]
-    [DrawIf("audioConfigurationType", ConfigType.Manual)][Tooltip("Max Distance")]
+    [DrawIf("allowChangesToAudioSource", true)][Tooltip("Max Distance")]
     [Range(1f, 500f)]
     private float maxDistance = 50f;
 
@@ -59,7 +61,7 @@ public class CustomAudioSource : MonoBehaviour
 
     [SerializeField]
     [Tooltip("Spread")]
-    [DrawIf("audioConfigurationType", ConfigType.Manual)][Range(0f, 360f)]
+    [DrawIf("allowChangesToAudioSource", true)][Range(0f, 360f)]
     private float spread = 0f;
     private Texture2D PlayIcon, DefaultIcon;
     private float minSpectrumVal = 0.001f;
@@ -78,7 +80,7 @@ public class CustomAudioSource : MonoBehaviour
     }
 
     [SerializeField]
-    [DrawIf("audioConfigurationType", ConfigType.Manual)][Tooltip("Volume")]
+    [DrawIf("allowChangesToAudioSource", true)][Tooltip("Volume")]
     [Range(0f, 1f)]
     private float volume = 1f;
 
@@ -94,16 +96,35 @@ public class CustomAudioSource : MonoBehaviour
     #if UNITY_EDITOR
     private void Awake()
     {
+        Initialize();
+        PlayIcon = Resources.Load<Texture2D>("Icons/speaker-playing");
+        DefaultIcon = Resources.Load<Texture2D>("Icons/speaker-default");
+    }
+    
+    private void Initialize()
+    {
+        if(audioSource != null)
+            return;
         audioSource = GetComponent<AudioSource>();
         audioSource.spatialBlend = 1f;
         audioSource.minDistance = minDistance;
         audioSource.maxDistance = maxDistance;
         audioSource.spread = spread;
         audioSource.volume = volume;
-        PlayIcon = Resources.Load<Texture2D>("Icons/speaker-playing");
-        DefaultIcon = Resources.Load<Texture2D>("Icons/speaker-default");
+        RefreshUpdateStatus();
     }
-    
+
+    public void RefreshUpdateStatus()
+    {
+        allowChangesToAudioSource = false;
+        if(audioConfigurationType == CustomAudioSource.ConfigType.Manual)
+        {
+            allowChangesToAudioConfig = false;
+            allowChangesToAudioSource = true;
+        } 
+        else 
+            allowChangesToAudioSource = allowChangesToAudioConfig;
+    }
     private void DrawGizmos()
     {
         // Draw max and min distance spheres
@@ -115,8 +136,21 @@ public class CustomAudioSource : MonoBehaviour
 
     }
 
+    private bool isUpdated()
+    {
+        if(audioSource == null)
+            Initialize();
+        return  minDistance != audioSource.minDistance ||
+                maxDistance != audioSource.maxDistance ||
+                volume != audioSource.volume ||
+                spread != audioSource.spread;
+    }
+
     public void LoadValuesFromAudioSource()
     {
+        if(!isUpdated())
+            return;
+
         minDistance = audioSource.minDistance;
         maxDistance = audioSource.maxDistance;
         volume = audioSource.volume;
@@ -125,6 +159,9 @@ public class CustomAudioSource : MonoBehaviour
 
     public void UpdateAudioSourceValues()
     {
+        if(!isUpdated())
+            return;
+
         audioSource.minDistance = minDistance;
         audioSource.maxDistance = maxDistance;
         audioSource.volume = volume;
@@ -196,26 +233,31 @@ public class CustomAudioSource : MonoBehaviour
     }
      public override void OnInspectorGUI() 
      {
+ 
+        customAudioSource.RefreshUpdateStatus();       
+
+        if(!customAudioSource.allowChangesToAudioConfig && customAudioSource.audioConfigurationType == CustomAudioSource.ConfigType.Use_Audio_Configuration)
+            customAudioSource.UpdateAudioSourceValuesFromConfig();  
+        else
+            customAudioSource.LoadValuesFromAudioSource();         
+
+
+        base.OnInspectorGUI();
+
         if(customAudioSource.audioConfigurationType == CustomAudioSource.ConfigType.Use_Audio_Configuration)
         {
             if(customAudioSource.allowChangesToAudioConfig)
-            {
-                customAudioSource.OverrideConfigData();
-                GUILayout.Label("Changes done to Audio Source will be updated in the Audio Configuration");
-            }    
-             else
-            {
-                GUILayout.Label("Changes done to Audio Source will not be updated in the Audio Configuration");
-            }
-        }  
-        else
-            customAudioSource.LoadValuesFromAudioSource();
-        base.OnInspectorGUI();
+                GUILayout.Label("\nAudio Source values set here will also be updated to the configuration file\n", EditorStyles.wordWrappedLabel);
+            else
+                GUILayout.Label("\nAudio Source values will be applied from the configuration file.\n", EditorStyles.wordWrappedLabel);
+        }
         
-        if(customAudioSource.audioConfigurationType == CustomAudioSource.ConfigType.Manual)
+        if(customAudioSource.allowChangesToAudioSource)
             customAudioSource.UpdateAudioSourceValues();
-        else if(customAudioSource.audioConfigurationType == CustomAudioSource.ConfigType.Use_Audio_Configuration)
-            customAudioSource.UpdateAudioSourceValuesFromConfig();    
+
+        if(customAudioSource.allowChangesToAudioConfig)
+            customAudioSource.OverrideConfigData();
+          
      }
  }
  #endif

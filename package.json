@@ -1,6 +1,6 @@
 {
   "name": "com.dolby.millicast",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "displayName": "Millicast",
   "description": "A Unity package to publish and view Millicast streams.",
   "unity": "2021.3",

@@ -31,7 +31,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3777371135319186085}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!82 &3777371134497413620
 AudioSource:
@@ -53,8 +53,8 @@ AudioSource:
   SpatializePostEffects: 0
   Priority: 128
   DopplerLevel: 1
-  MinDistance: 16
-  MaxDistance: 48.85
+  MinDistance: 10
+  MaxDistance: 50
   Pan2D: 0
   rolloffMode: 0
   BypassEffects: 0
@@ -159,11 +159,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b9097106291c4a3cb6e385e04f9966d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  audioConfigurationType: 1
+  audioConfigurationType: 0
   audioConfiguration: {fileID: 0}
-  allowChangesToAudioConfig: 1
-  minDistance: 16
-  maxDistance: 48.85
+  allowChangesToAudioConfig: 0
+  allowChangesToAudioSource: 1
+  minDistance: 10
+  maxDistance: 50
   spread: 0
   volume: 1
 --- !u!1 &3777371135024496912
@@ -197,7 +198,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3777371135319186085}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!82 &3777371135024496913
 AudioSource:
@@ -328,6 +329,7 @@ MonoBehaviour:
   audioConfigurationType: 0
   audioConfiguration: {fileID: 0}
   allowChangesToAudioConfig: 0
+  allowChangesToAudioSource: 1
   minDistance: 10
   maxDistance: 50
   spread: 0
@@ -494,6 +496,7 @@ MonoBehaviour:
   audioConfigurationType: 0
   audioConfiguration: {fileID: 0}
   allowChangesToAudioConfig: 0
+  allowChangesToAudioSource: 1
   minDistance: 10
   maxDistance: 50
   spread: 0
@@ -509,7 +512,7 @@ GameObject:
   - component: {fileID: 3777371135319186085}
   - component: {fileID: 3777371135319186084}
   m_Layer: 0
-  m_Name: Five_One_Speaker
+  m_Name: Five_One_Speakers
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -528,11 +531,11 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3777371135265397244}
-  - {fileID: 3777371135638415047}
   - {fileID: 3777371134497413611}
-  - {fileID: 3777371135385056392}
-  - {fileID: 3777371135024496914}
   - {fileID: 3777371135422021198}
+  - {fileID: 3777371135385056392}
+  - {fileID: 3777371135638415047}
+  - {fileID: 3777371135024496914}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -555,11 +558,11 @@ MonoBehaviour:
     _right: {fileID: 0}
   FiveOneAudioSpeakers:
     _left: {fileID: 3777371135265397235}
-    _surroundLeft: {fileID: 3777371135638415046}
     _right: {fileID: 3777371134497413620}
-    _lfe: {fileID: 3777371135385056399}
-    _surroundRight: {fileID: 3777371135024496913}
     _center: {fileID: 3777371135422021197}
+    _lfe: {fileID: 3777371135385056399}
+    _surroundLeft: {fileID: 3777371135638415046}
+    _surroundRight: {fileID: 3777371135024496913}
 --- !u!1 &3777371135385056398
 GameObject:
   m_ObjectHideFlags: 0
@@ -722,6 +725,7 @@ MonoBehaviour:
   audioConfigurationType: 0
   audioConfiguration: {fileID: 0}
   allowChangesToAudioConfig: 0
+  allowChangesToAudioSource: 1
   minDistance: 10
   maxDistance: 50
   spread: 0
@@ -757,7 +761,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3777371135319186085}
-  m_RootOrder: 5
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!82 &3777371135422021197
 AudioSource:
@@ -848,7 +852,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0.0875
+      value: 0
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -888,9 +892,10 @@ MonoBehaviour:
   audioConfigurationType: 0
   audioConfiguration: {fileID: 11400000, guid: b75dd73923a856b4ca052585037e6b45, type: 2}
   allowChangesToAudioConfig: 0
+  allowChangesToAudioSource: 1
   minDistance: 10
   maxDistance: 50
-  spread: 31.5
+  spread: 0
   volume: 1
 --- !u!1 &3777371135638415045
 GameObject:
@@ -923,7 +928,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 3777371135319186085}
-  m_RootOrder: 1
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!82 &3777371135638415046
 AudioSource:
@@ -1054,6 +1059,7 @@ MonoBehaviour:
   audioConfigurationType: 0
   audioConfiguration: {fileID: 0}
   allowChangesToAudioConfig: 0
+  allowChangesToAudioSource: 1
   minDistance: 10
   maxDistance: 50
   spread: 0

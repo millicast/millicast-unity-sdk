@@ -53,7 +53,7 @@ MonoBehaviour:
   _renderImages: []
   audioOutputType: 0
   defaultAudioConfiguration: {fileID: 11400000, guid: b75dd73923a856b4ca052585037e6b45, type: 2}
-  audioAnchorTransform: {fileID: 8006035715483552712}
+  audioAnchorTransform: {fileID: 8006035714734225602}
   OutputAudioSources:
     audioSources: []
   OutputAudioSpeakers: {fileID: 0}

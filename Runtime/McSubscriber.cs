@@ -69,7 +69,7 @@ namespace Dolby.Millicast
         /// </summary>
         [SerializeField]
         [Tooltip("Subscribe as soon as the script starts")]
-        private bool _subscribeOnStart = true;
+        private bool _subscribeOnStart = false;
 
         /// <summary>
         /// If the current object contains a mesh renderer,
@@ -124,6 +124,19 @@ namespace Dolby.Millicast
         {
             public List<AudioSource> audioSources;
         }
+
+	private string getPrefabName(int channelCount)
+	{
+	    switch (channelCount)
+	    {
+	        case 2:
+	    	return "Stereo_Speakers";
+	        case 6: 
+	    	return "Five_One_Speakers"; 
+	        default:
+	    	return "";
+	    }
+	}
 
         /// <summary>
         /// Manually set the audio sources to render to. This
@@ -411,7 +424,7 @@ namespace Dolby.Millicast
                         }
 
                         VirtualAudioSpeaker defaultSpeaker = CreateVirtualSpeaker(channelCount);
-                        if (defaultSpeaker != null)
+                        if (defaultSpeaker == null)
                         {
                             if (channelCount == 6)
                                 defaultSpeaker.SetChannelMap(_pc.getChannelMap);
@@ -423,7 +436,11 @@ namespace Dolby.Millicast
 
                             _renderer.AddVirtualAudioSpeaker(defaultSpeaker, _pc.getInboundChannelCount);
                         }
-                    } else
+
+                        defaultSpeaker.SetChannelMap(_pc.getChannelMap);
+                        _renderer.AddVirtualAudioSpeaker(defaultSpeaker, _pc.getInboundChannelCount);
+                    } 
+                    else
                     {
                         if (_defaultAudioSource == null)
                         {
@@ -431,7 +448,8 @@ namespace Dolby.Millicast
                             {
                                 throw new Exception("Default audio configuration cannot be null in Auto mode!");
                             }
-                            _defaultAudioSource = gameObject.AddComponent<AudioSource>();
+                            var audioAnchorObject = audioAnchorTransform != null ? audioAnchorTransform.gameObject : gameObject;
+                            _defaultAudioSource = audioAnchorObject.AddComponent<AudioSource>();
                             defaultAudioConfiguration.LoadData(_defaultAudioSource);
                         }
 
@@ -466,7 +484,7 @@ namespace Dolby.Millicast
 
                     if (OutputAudioSpeakers.GetChannelCount() < channelCount)
                     {
-                        throw new Exception($"Virtual Speaker count cannot play incoming channel count {channelCount}");
+                        throw new Exception($"Virtual Speaker cannot play incoming channel count {channelCount}");
                     }
 
                     if (OutputAudioSpeakers.GetChannelCount() > channelCount)
@@ -495,14 +513,18 @@ namespace Dolby.Millicast
 
             if (audioAnchorTransform == null)
                 audioAnchorTransform = transform;
-            string prefabName = channelCount == 6 ? "Five_One_Speaker" : "Stereo_Speakers";
+            
+            string prefabName = getPrefabName(channelCount);
+            
+            if(string.IsNullOrEmpty(prefabName))
+                return null;
+
             GameObject obj = Instantiate(Resources.Load(prefabName) as GameObject, audioAnchorTransform);
             _defaultAudioSpeaker = obj.GetComponent<VirtualAudioSpeaker>();
             if (defaultAudioConfiguration != null)
                 _defaultAudioSpeaker.UpdateAudioConfiguration(defaultAudioConfiguration);
             return _defaultAudioSpeaker;
         }
-
 
         private void OnDestroy()
         {
@@ -549,6 +571,7 @@ namespace Dolby.Millicast
 
             if (string.IsNullOrEmpty(credentials.accountId))
                 message = "Stream Account ID";
+            
             if (string.IsNullOrEmpty(credentials.url))
                 message += string.IsNullOrEmpty(message) ? "Subscriber URL" : ", Subscriber URL";
 
@@ -567,7 +590,6 @@ namespace Dolby.Millicast
             {
                 AddVideoRenderTarget(image);
             }
-
         }
 
 

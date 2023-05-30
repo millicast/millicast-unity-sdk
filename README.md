@@ -61,7 +61,7 @@ If using URP, users needs to convert the materials to URP by selecting the `Mate
     How ever, user can still update the video configuration from UI drop down options at run time.
 *  **UISubscriber**
     This scene demonstrates the usage of MCSubscriber using the RawImage as streaming Target renderer. User can start/stop the video stream using the Subscribe/UnSubscribe buttons.
-
+*  **Virtual Stereo Subscriber** This scene demonstrates a simple subscriber usage of virtualized stereo speakers, where the left channel is played on the left speaker, and the right channel is played on the right one. 
 ### Additional Android Player Settings:
     We currently support the OpenGLES3 Graphics API on Android Devices. Vulkan Graphics API is not supported.
 
@@ -82,10 +82,13 @@ If using URP, users needs to convert the materials to URP by selecting the `Mate
             *   require ES3.1 + AEP
             *   require ES3.2
 
-### V1 Limitation
-Currently, using `AudioListener` as an audio source for publishing causes a drop in FPS. This is due to Unity WebRTC utilising `OnAudioFilterRead` to fetch audio frames from the `AudioListener`. We will be working on a fix for this in the next release. 
+### Notes on simulcast 
+Currently, publishing with simulcast only works with VP8 and on Windows machines. Attempting to publish with simulcast on other platforms will cause a crash due to a bug in Unity WebRTC.
+
+### Notes on H264
+Using H264 on Windows requires an Nvidia GPU as the Unity WebRTC implementation uses a hardware encoder only. Make sure to have up-to-date drivers. Head over to the [Unity WebRTC documentation](https://docs.unity3d.com/Packages/com.unity.webrtc@3.0/manual/videostreaming.html) to learn more about the video codecs supported by Unity WebRTC and thus by us. If you have issues on Windows where the stream is not being viewed on the web browser when publishing using H264, it is likely an issue with an out-dated driver.
+
 
 ### Simulcast Feature
-
 * Supported Codec : VP8
 * Supported Platform : Windows

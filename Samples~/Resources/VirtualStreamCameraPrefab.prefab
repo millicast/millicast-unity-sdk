@@ -101,11 +101,11 @@ MonoBehaviour:
   _credentials: {fileID: 11400000, guid: ec20144462e08ed4fb3f7cf060f17183, type: 2}
   _publishOnStart: 1
   streamType: 0
-  _videoConfigData: {fileID: 11400000, guid: cfa3a830a66423a49b717c2dfec17130, type: 2}
-  videoSourceType: 1
+  _videoConfigData: {fileID: 0}
+  videoSourceType: 0
   _videoSourceCamera: {fileID: 7109873366099735389}
   _videoSourceRenderTexture: {fileID: 0}
-  _useAudioListenerAsSource: 0
+  _useAudioListenerAsSource: 1
   _audioSource: {fileID: 0}
   enableMultiSource: 0
   _sourceId: 

@@ -111,7 +111,7 @@ namespace Dolby.Millicast
         private McCredentials _credentials;
         [SerializeField]
         [Tooltip("Publish as soon as the script start")]
-        private bool _publishOnStart = true;
+        private bool _publishOnStart = false;
 
         [SerializeField]
         private StreamType streamType;
@@ -141,7 +141,8 @@ namespace Dolby.Millicast
         /// </summary>
         [Tooltip("Only use this if the object contains an AudioListener")]    
         [DrawIf("streamType", StreamType.Video, true)]
-        [SerializeField]
+
+	[SerializeField]
         private bool _useAudioListenerAsSource = true;
         [DrawIf("streamType", StreamType.Video, true)]
         [DrawIf("_useAudioListenerAsSource", false)]
@@ -787,13 +788,17 @@ namespace Dolby.Millicast
         }
         private void CheckAudioVideoSource()
         {
-            if (!_useAudioListenerAsSource && _audioSource == null)
+            if(streamType == StreamType.Audio || streamType == StreamType.Both)
             {
-                Debug.Log("Video being published without Audio..");
+                if (!_useAudioListenerAsSource && _audioSource == null)
+                    Debug.Log("Video being published without Audio..");
             }
-            if (_videoTrack == null && ((videoSourceType == VideoSourceType.Camera && _videoSourceCamera == null) ||
+            if(streamType == StreamType.Video || streamType == StreamType.Both)
+            {
+                if (_videoTrack == null && ((videoSourceType == VideoSourceType.Camera && _videoSourceCamera == null) ||
                 (videoSourceType == VideoSourceType.RenderTexture && _videoSourceRenderTexture == null)))
                 throw new Exception("Please assign Video Stream Source in Insector");
+            }
 
         }
 
@@ -826,15 +831,19 @@ namespace Dolby.Millicast
                 SetVideoSource(_videoSourceRenderTexture);
             }
 
-            // Preference for AudioListener first, unless AudioSource is set.
-            if (_useAudioListenerAsSource)
+            if(streamType == StreamType.Audio || streamType == StreamType.Both)
             {
-                SetAudioListenerAsSource();
+                // Preference for AudioListener first, unless AudioSource is set.
+                if (_useAudioListenerAsSource)
+                {
+                    SetAudioListenerAsSource();
+                }
+                else if (_audioSource != null)
+                {
+                    SetAudioSource(_audioSource);
+                }
             }
-            else if (_audioSource != null)
-            {
-                SetAudioSource(_audioSource);
-            }
+            
 
             // Prioritise UI creedntials
 
