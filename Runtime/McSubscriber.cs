@@ -488,7 +488,7 @@ namespace Dolby.Millicast
             // No need to recreate an audio speaker if
             // there is an existing one that supports the incoming
             // channel count
-            if (_defaultAudioSpeaker != null && channelCount < _defaultAudioSpeaker.GetChannelCount())
+            if (_defaultAudioSpeaker != null && channelCount <= _defaultAudioSpeaker.GetChannelCount())
                 return _defaultAudioSpeaker;
             else
                 GameObject.Destroy(_defaultAudioSpeaker);
