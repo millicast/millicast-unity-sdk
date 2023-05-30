@@ -53,8 +53,8 @@ AudioSource:
   SpatializePostEffects: 0
   Priority: 128
   DopplerLevel: 1
-  MinDistance: 16
-  MaxDistance: 48.85
+  MinDistance: 10
+  MaxDistance: 50
   Pan2D: 0
   rolloffMode: 0
   BypassEffects: 0
@@ -159,11 +159,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b9097106291c4a3cb6e385e04f9966d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  audioConfigurationType: 1
+  audioConfigurationType: 0
   audioConfiguration: {fileID: 0}
-  allowChangesToAudioConfig: 1
-  minDistance: 16
-  maxDistance: 48.85
+  allowChangesToAudioConfig: 0
+  allowChangesToAudioSource: 1
+  minDistance: 10
+  maxDistance: 50
   spread: 0
   volume: 1
 --- !u!1 &3777371135024496912
@@ -328,6 +329,7 @@ MonoBehaviour:
   audioConfigurationType: 0
   audioConfiguration: {fileID: 0}
   allowChangesToAudioConfig: 0
+  allowChangesToAudioSource: 1
   minDistance: 10
   maxDistance: 50
   spread: 0
@@ -494,6 +496,7 @@ MonoBehaviour:
   audioConfigurationType: 0
   audioConfiguration: {fileID: 0}
   allowChangesToAudioConfig: 0
+  allowChangesToAudioSource: 1
   minDistance: 10
   maxDistance: 50
   spread: 0
@@ -722,6 +725,7 @@ MonoBehaviour:
   audioConfigurationType: 0
   audioConfiguration: {fileID: 0}
   allowChangesToAudioConfig: 0
+  allowChangesToAudioSource: 1
   minDistance: 10
   maxDistance: 50
   spread: 0
@@ -848,7 +852,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0.0875
+      value: 0
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -888,9 +892,10 @@ MonoBehaviour:
   audioConfigurationType: 0
   audioConfiguration: {fileID: 11400000, guid: b75dd73923a856b4ca052585037e6b45, type: 2}
   allowChangesToAudioConfig: 0
+  allowChangesToAudioSource: 1
   minDistance: 10
   maxDistance: 50
-  spread: 31.5
+  spread: 0
   volume: 1
 --- !u!1 &3777371135638415045
 GameObject:
@@ -1054,6 +1059,7 @@ MonoBehaviour:
   audioConfigurationType: 0
   audioConfiguration: {fileID: 0}
   allowChangesToAudioConfig: 0
+  allowChangesToAudioSource: 1
   minDistance: 10
   maxDistance: 50
   spread: 0

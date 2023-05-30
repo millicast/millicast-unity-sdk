@@ -111,7 +111,7 @@ namespace Dolby.Millicast
         private McCredentials _credentials;
         [SerializeField]
         [Tooltip("Publish as soon as the script start")]
-        private bool _publishOnStart = true;
+        private bool _publishOnStart = false;
 
         [SerializeField]
         private StreamType streamType;
