@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4716279658372761128}
   - component: {fileID: 3383640228568591692}
   m_Layer: 0
-  m_Name: DolbyAudioSource
+  m_Name: DolbyIOAudioSource
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
