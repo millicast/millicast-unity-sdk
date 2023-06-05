@@ -116,11 +116,6 @@ namespace Dolby.Millicast
         [SerializeField]
         private StreamType streamType;
 
-        [Header("Video Configuration Settings :\n")]
-        [Tooltip("Assign VideoConfiguration Scriptable Object reference here.")]
-        [HideInInspector] public VideoConfiguration _videoConfigData;
-        public VideoConfiguration videoConfigData { get => _videoConfigData; }
-
         public Credentials credentials { get; set; } = null;
 
         [DrawIf("streamType", StreamType.Audio, true)]
@@ -134,6 +129,13 @@ namespace Dolby.Millicast
         [DrawIf("streamType", StreamType.Audio, true)][DrawIf("videoSourceType", VideoSourceType.RenderTexture)]
         [SerializeField]
         private RenderTexture _videoSourceRenderTexture;
+
+        [Tooltip("Assign VideoConfiguration Scriptable Object reference here.")]
+        [DrawIf("streamType", StreamType.Audio, true)]
+        [SerializeField]
+        private VideoConfiguration _videoConfigData;
+        public VideoConfiguration videoConfigData { get => _videoConfigData; }
+
         /// <summary>
         /// Whether or not to use the audio listener as a source to publishing. This
         /// is a UI setting. If the game object does not contain an AudioListener, 
@@ -142,7 +144,7 @@ namespace Dolby.Millicast
         [Tooltip("Only use this if the object contains an AudioListener")]    
         [DrawIf("streamType", StreamType.Video, true)]
 
-	[SerializeField]
+	    [SerializeField]
         private bool _useAudioListenerAsSource = true;
         [DrawIf("streamType", StreamType.Video, true)]
         [DrawIf("_useAudioListenerAsSource", false)]
@@ -557,7 +559,7 @@ namespace Dolby.Millicast
             videoSourceType = VideoSourceType.Camera;
             _publishingCamera = CopyCamera(source);
             if (resolution == null)
-                resolution = _videoConfigData.pStreamSize;
+                resolution = videoConfigData.pStreamSize;
             _videoTrack = _publishingCamera.CaptureStreamTrack(resolution.width, resolution.height);
             _renderer.SetTexture(_publishingCamera.targetTexture);
             // We will also replace the old track if it exists
@@ -736,13 +738,13 @@ namespace Dolby.Millicast
         {
             if (_videoConfig == null)
                 _videoConfig = new VideoConfig();
-            _videoConfig.maxBitrate = (uint)_videoConfigData.pQualitySettings.pMaxBitrate;
-            _videoConfig.minBitrate = (uint)_videoConfigData.pQualitySettings.pMinBitrate;
-            _videoConfig.maxFramerate = (uint)_videoConfigData.pQualitySettings.pFramerateOption;
-            _videoConfig.resolutionDownScaling = (double)_videoConfigData.pQualitySettings.pScaleDownOption;
-            options.videoCodec = _videoConfigData.pCodecType;
-            isSimulcast = _videoConfigData.simulcast;
-            SetSimulcastData(_videoConfigData.pSimulcastSettings);
+            _videoConfig.maxBitrate = (uint)videoConfigData.pQualitySettings.pMaxBitrate;
+            _videoConfig.minBitrate = (uint)videoConfigData.pQualitySettings.pMinBitrate;
+            _videoConfig.maxFramerate = (uint)videoConfigData.pQualitySettings.pFramerateOption;
+            _videoConfig.resolutionDownScaling = (double)videoConfigData.pQualitySettings.pScaleDownOption;
+            options.videoCodec = videoConfigData.pCodecType;
+            isSimulcast = videoConfigData.simulcast;
+            SetSimulcastData(videoConfigData.pSimulcastSettings);
             //stream size will be taken from video settings in SetVideoSource method
         }
 
@@ -804,7 +806,7 @@ namespace Dolby.Millicast
 
         private void CheckVideoSettings()
         {
-            if (_videoConfigData == null)
+            if (videoConfigData == null)
             {
                 _videoConfigData = ScriptableObject.CreateInstance<VideoConfiguration>();
             }
