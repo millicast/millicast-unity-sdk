@@ -3,6 +3,12 @@
 ## Overview
 The Millicast Unity package allows game developers to publish and view streams from the Millicast service from within their Unity games. For example, users can publish scenes captured from their in-game cameras, as well as audio sources, for other viewers to subscribe to, as well as rendering video and audio streams incoming from the service onto textures and audio sources. 
 
+
+## Documentation
+
+The API (class) Documentation can be found [here](https://millicast.github.io/millicast-unity-sdk/Documentation/html/index.html).
+The Dolby.io tutorials and further documentation can be found [here](https://docs.dolby.io/streaming-apis/docs/unity-getting-started).
+
 ## Requirements 
 This package uses Unity WebRTC as a dependency, and therefore requires the following: 
 
@@ -92,3 +98,7 @@ Using H264 on Windows requires an Nvidia GPU as the Unity WebRTC implementation 
 ### Simulcast Feature
 * Supported Codec : VP8
 * Supported Platform : Windows
+
+
+### Known Limitations
+* Currently, attempting to publish with an `AudioSource` selected in a `VideoPlayer` does not work as intended.
