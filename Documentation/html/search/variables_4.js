@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['subscribe_5ftoken_0',['subscribe_token',['../class_dolby_1_1_millicast_1_1_mc_credentials.html#a2ecdd81df1cc5917987c0272952948b0',1,'Dolby::Millicast::McCredentials']]]
+  ['resolutiondownscaling_0',['resolutionDownScaling',['../class_dolby_1_1_millicast_1_1_video_config.html#a60f42115c349177a55d204148500da6e',1,'Dolby::Millicast::VideoConfig']]]
 ];

@@ -31,7 +31,7 @@ namespace Dolby.Millicast
     public int viewercount { get; set; }
     public string streamId { get; set; }
     public string sourceId { get; set; }
-
+    public object medias { get; set; }
     public List<TrackInfo> tracks;
   }
   internal class ServiceResponse
@@ -191,8 +191,8 @@ namespace Dolby.Millicast
       string os_version = OSDetails.GetOSVersion(os_info);
       string plugin_version = Millicast.GetPackageVersion();
       string device_model = SystemInfo.deviceModel;
-      //<SDK Name>/<SDK version> (<OS>/<OS Version>; <extra info>)
-      var userAgent = $"UnitySDK/{plugin_version} ({os_name}/{os_version}; {device_model})";
+      //<SDK Name>/<SDK version> (<OS>/<OS Version>; <extra info>;<Unity/version>)
+      var userAgent = $"UnitySDK/{plugin_version} ({os_name}/{os_version}; {device_model}; Unity/{Application.unityVersion})";
       var websocketHeaders = new Dictionary<string, string>() { { "User-Agent", userAgent } };
 
       _websocket = new WebSocket(fullUrl, websocketHeaders);
@@ -231,6 +231,9 @@ namespace Dolby.Millicast
           break;
         case ISignaling.Event.SUBSCRIBE:
           payload = PreparePayload("view", ref data);
+          break;
+         case ISignaling.Event.SELECT:
+          payload = PreparePayload("select", ref data);
           break;
         default:
           //TODO: Implement other events

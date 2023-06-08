@@ -171,6 +171,7 @@ namespace Dolby.Millicast
 
     private RTCPeerConnection _pc;
     private ISignaling _signaling;
+    private StatsParser parser;
 
 
     private void OnIceConnectionChange(RTCIceConnectionState state)
@@ -292,6 +293,40 @@ namespace Dolby.Millicast
         OnSetSessionDescriptionError(ref error);
       }
     }
+  
+    public void CheckStats()
+    {
+        parser = new StatsParser(_pc);
+        OnCoroutineRunRequested?.Invoke(LoopStatsCoroutine());
+    }
+    private IEnumerator LoopStatsCoroutine()
+    {
+        do
+        {
+            yield return OnCoroutineRunRequested?.Invoke(parser.CheckStats());
+            yield return new WaitForSeconds(1f);
+        }
+        while(true);
+    }
+
+    public int getInboundChannelCount 
+    { 
+      get 
+          {
+            if(parser != null) 
+                return parser.inboundAudioStreamChannelCount; 
+            return -1;
+          }
+    }
+    public int[] getChannelMap 
+    {
+       get
+        {
+          if(parser != null)
+             return parser.ChannelMap; 
+          return null;
+        }
+      }
 
     private void OnCreateSessionDescriptionError(RTCError error)
     {
@@ -350,7 +385,8 @@ namespace Dolby.Millicast
         switch (e)
         {
           case ISignaling.Event.RESPONSE:
-            OnCoroutineRunRequested.Invoke(OnRemoteAnswer(ParseAnswer(data)));
+            if(data != null)
+              OnCoroutineRunRequested.Invoke(OnRemoteAnswer(ParseAnswer(data)));
             break;
         }
       };
@@ -361,15 +397,18 @@ namespace Dolby.Millicast
     /// </summary>
     /// <param name="signaling"></param>
     /// <param name="configuration"></param>
-    public void SetUp(ISignaling signaling, RTCConfiguration configuration)
+    public void SetUp(ISignaling signaling, RTCConfiguration configuration, bool addTransceiver = false)
     {
       _signaling = signaling;
       EstablishEvents();
       _pc = new RTCPeerConnection(ref configuration);
       _pc.OnNegotiationNeeded += OnNegotiationNeeded;
       _pc.OnTrack += OnTrackEvent;
-      _pc.AddTransceiver(TrackKind.Video);
-      _pc.AddTransceiver(TrackKind.Audio);
+      if(addTransceiver)
+      {
+        _pc.AddTransceiver(TrackKind.Video);
+        _pc.AddTransceiver(TrackKind.Audio);
+      }
     }
 
     public void Disconnect()
@@ -381,6 +420,11 @@ namespace Dolby.Millicast
     {
       return _pc.AddTrack(track);
     }
+    public RTCRtpTransceiver AddTransceiver(MediaStreamTrack track, RTCRtpTransceiverInit init=null)
+    {
+      return _pc.AddTransceiver(track, init);
+    }
+
 
     public void RemoveTrack(MediaStreamTrack track)
     {

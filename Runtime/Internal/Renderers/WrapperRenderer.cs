@@ -40,6 +40,10 @@ namespace Dolby.Millicast
     {
       _audioSourceRenderer.AddAudioSource(audioSource);
     }
+     public void AddVirtualAudioSpeaker(VirtualAudioSpeaker virtualSpeaker, int channelCount)
+    {
+      _audioSourceRenderer.AddVirtualAudioSpeaker(virtualSpeaker, channelCount);
+    }
 
     public void RemoveAudioTarget(AudioSource audioSource)
     {
@@ -57,7 +61,7 @@ namespace Dolby.Millicast
     {
       _audioSourceRenderer.SetRenderAudioTrack(track);
     }
-
+    
     public void Clear()
     {
       _materialRenderer.Clear();

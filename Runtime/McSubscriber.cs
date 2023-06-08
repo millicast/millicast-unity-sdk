@@ -6,10 +6,16 @@ using System.Text.RegularExpressions;
 using Unity.WebRTC;
 using UnityEngine.UI;
 using UnityEngine;
+using UnityEngine.Events;
 using Newtonsoft.Json;
 
 namespace Dolby.Millicast
 {
+    [System.Serializable]
+    public class SimulcastEvent : UnityEvent<McSubscriber, SimulcastInfo>
+    {
+
+    }
 
     /// <summary>
     /// The Millicast subscriber class. Allows users to subscribe to Millicast streams.
@@ -70,6 +76,7 @@ namespace Dolby.Millicast
         /// enabling this will rename the mesh renderer's material
         /// to the stream name, and render the incoming stream on it.
         /// </summary>
+        [Header("\nVideo Settings: \n")]
         [SerializeField]
         [Tooltip("Enabling will render incoming stream onto mesh renderer's material, if it exists.")]
         private bool _updateMeshRendererMaterial = false;
@@ -101,18 +108,58 @@ namespace Dolby.Millicast
             get => _renderImages;
         }
 
+        [Header("\nAudio Settings :\n")]
+
+        public AudioOutputType audioOutputType;
+
+        [Tooltip("default Audio configuration.")]
+        [SerializeField][DrawIf("audioOutputType", AudioOutputType.Auto)]
+        private AudioConfiguration defaultAudioConfiguration;
+
+        [Tooltip("Audio Anchor Transform sets the position within the scene where the audio audio rendering will be attached. This can be camera, or a game object, the audio rendering will be pinned to that game object as it moves within the scene")]
+        [SerializeField][DrawIf("audioOutputType", AudioOutputType.Auto)]
+        private Transform audioAnchorTransform;
+        [System.Serializable]
+        public class RenderAudioSources
+        {
+            public List<AudioSource> audioSources;
+        }
+
+	private string getPrefabName(int channelCount)
+	{
+	    switch (channelCount)
+	    {
+	        case 2:
+	    	return "Stereo_Speakers";
+	        case 6: 
+	    	return "Five_One_Speakers"; 
+	        default:
+	    	return "";
+	    }
+	}
 
         /// <summary>
         /// Manually set the audio sources to render to. This
         /// is used when you want utilise the Unity Inspector UI.
         /// </summary>
-        [Tooltip("Add your AudioSources here to render incoming audio streams")]
-        [SerializeField]
-        private List<AudioSource> _renderAudioSources = new List<AudioSource>();
+        [Tooltip("Add your AudioSources here to render incoming audio streams, will work only for stereo incoming audio types.")]
+        [SerializeField][DrawIf("audioOutputType", AudioOutputType.AudioSource)]
+        public RenderAudioSources OutputAudioSources;
+
+        [SerializeField][DrawIf("audioOutputType", AudioOutputType.VirtualSpeakers)]
+        public VirtualAudioSpeaker OutputAudioSpeakers;
+
+        private VirtualAudioSpeaker _defaultAudioSpeaker;
+        private AudioSource _defaultAudioSource;
+        private List<AudioSource> _renderAudioSources => OutputAudioSources.audioSources;
         public List<AudioSource> renderAudioSources
         {
             get => this._renderAudioSources;
         }
+
+        [Header("\nEvent Listeners :\n")]
+        [SerializeField] private SimulcastEvent simulcastEvent;
+        private SimulcastInfo simulCastInfo;
 
 
         public delegate void DelegateSubscriber(McSubscriber subscriber);
@@ -129,10 +176,16 @@ namespace Dolby.Millicast
         public event DelegateOnViewerCount OnViewerCount;
 
         public delegate void DelegateOnConnectionError(McSubscriber subscribe, string message);
+        public delegate void DelegateOnLayerEvent(McSubscriber subscribe, SimulcastInfo info);
+        /// <summary>
+        /// Event called when the Simulcast Layers data event triggered.
+        /// </summary>
+        public event DelegateOnLayerEvent OnSimulcastlayerInfo;
         /// <summary>
         /// Event called when the there is a connection error to the service.
         /// </summary>
         public event DelegateOnConnectionError OnConnectionError;
+        private int channelsCount = -1;
 
 
         /// <summary>
@@ -169,7 +222,7 @@ namespace Dolby.Millicast
             // TODO: Need to also add excludedSourceIds and pinnedSourceIds
             payload["streamId"] = streamName;
             payload["sdp"] = desc.sdp;
-            payload["events"] = new string[] { "active", "inactive", "stopped", "viewercount" };
+            payload["events"] = new string[] { "active", "inactive", "stopped", "viewercount", "layers" };
 
             yield return _signaling?.Send(ISignaling.Event.SUBSCRIBE, payload);
         }
@@ -200,10 +253,46 @@ namespace Dolby.Millicast
                     case ISignaling.Event.VIEWER_COUNT:
                         OnViewerCount?.Invoke(this, payload.viewercount);
                         break;
+                    case ISignaling.Event.LAYERS:
+                        try
+                        {
+                            simulCastInfo = DataContainer.ParseSimulcastLayers(payload.medias);
+                            OnSimulcastlayerInfo?.Invoke(this, simulCastInfo);
+                            simulcastEvent?.Invoke(this, simulCastInfo);
+                        }
+                        catch (System.Exception exception)
+                        {
+                            Debug.LogError("Failed to parse the Simulcast layers data: " + exception.Message);
+                        }
+                        break;
                 }
             };
-
             StartCoroutine(AwaitSignalingMessages());
+        }
+        /// <summary>
+        /// Returns the simulcast layers available for the incoming video stream if its a simulcast stream.
+        /// Returns null if the stream is not simulcast.
+        /// </summary>
+        public Layer[] GetSimulcastLayers()
+        {
+            if (simulCastInfo != null)
+                return simulCastInfo.Layers;
+            return null;
+        }
+
+        private void OnSimulcastLayerEvent(McSubscriber subscriber, SimulcastInfo info)
+        {
+            string text = "Active Simulcast Data: \n";
+            foreach (var item in info.Active)
+            {
+                text += "simulcast Id: " + item.Id + " , Bitrate: " + item.Bitrate;
+                foreach (var layer in item.Layers)
+                {
+                    text += "\n\t layer: " + layer.TemporalLayerId + ", Bitrate: " + layer.Bitrate + ", temporal layer id: " + layer.TemporalLayerId + ", spatial layer id: " + layer.SpatialLayerId;
+                }
+                text += "\n";
+            }
+            Debug.Log(text);
         }
 
         /// <summary>
@@ -234,6 +323,7 @@ namespace Dolby.Millicast
                 Debug.Log("[PeerConnection] established connection.");
                 isSubscribing = true;
                 OnSubscribing?.Invoke(this);
+                _pc.CheckStats();
             };
             _pc.OnCoroutineRunRequested += (e) =>
             {
@@ -246,17 +336,16 @@ namespace Dolby.Millicast
                     Debug.Log("[Subscriber] Received video track");
                     track.OnVideoReceived += (tex) =>
                     {
-                          _renderer.SetTexture(tex);
-                      };
+                        _renderer.SetTexture(tex);
+                    };
                 }
-
                 if (e.Track is AudioStreamTrack audioTrack)
                 {
                     Debug.Log("[Subscriber] Received audio track");
                     _renderer.SetAudioTrack(audioTrack);
                 }
             };
-            _pc.SetUp(_signaling, _rtcConfiguration);
+            _pc.SetUp(_signaling, _rtcConfiguration, true);
         }
 
         void Awake()
@@ -303,6 +392,7 @@ namespace Dolby.Millicast
 
         void Start()
         {
+            OnSimulcastlayerInfo += OnSimulcastLayerEvent;
             if (_subscribeOnStart)
             {
                 Subscribe();
@@ -311,6 +401,128 @@ namespace Dolby.Millicast
         private void Update()
         {
             _signaling?.Dispatch();
+            if (_pc != null && _pc.getInboundChannelCount > 0 && channelsCount != _pc.getInboundChannelCount)
+            {
+                channelsCount = _pc.getInboundChannelCount;
+                AddAudioRenderer(channelsCount);
+            }
+        }
+
+        private void AddAudioRenderer(int channelCount)
+        {
+            bool needsVirtualizing = channelCount > AudioHelpers.GetAudioSpeakerModeIntFromEnum(AudioSettings.driverCapabilities) ?
+                true : false;
+
+            switch (audioOutputType)
+            {
+                case AudioOutputType.Auto:
+                    if (needsVirtualizing)
+                    {
+                        if (_defaultAudioSource != null)
+                        {
+                            RemoveRenderAudioSource(_defaultAudioSource);
+                        }
+
+                        VirtualAudioSpeaker defaultSpeaker = CreateVirtualSpeaker(channelCount);
+                        if (defaultSpeaker == null)
+                        {
+                            if (channelCount == 6)
+                                defaultSpeaker.SetChannelMap(_pc.getChannelMap);
+
+                            if (defaultSpeaker.GetChannelCount() > channelCount)
+                            {
+                                defaultSpeaker.StopAll();
+                            }
+
+                            _renderer.AddVirtualAudioSpeaker(defaultSpeaker, _pc.getInboundChannelCount);
+                        }
+
+                        defaultSpeaker.SetChannelMap(_pc.getChannelMap);
+                        _renderer.AddVirtualAudioSpeaker(defaultSpeaker, _pc.getInboundChannelCount);
+                    } 
+                    else
+                    {
+                        if (_defaultAudioSource == null)
+                        {
+                            var audioAnchorObject = audioAnchorTransform != null ? audioAnchorTransform.gameObject : gameObject;
+                            _defaultAudioSource = audioAnchorObject.AddComponent<AudioSource>();
+                            if (defaultAudioConfiguration != null)
+                            {
+                                defaultAudioConfiguration.LoadData(_defaultAudioSource);
+                            }
+                        }
+
+                        if (_defaultAudioSpeaker != null)
+                        {
+                            _defaultAudioSpeaker.StopAll();
+                        }
+
+                        AddRenderAudioSource(_defaultAudioSource);
+                    }
+                    break;
+
+                case AudioOutputType.AudioSource:
+                    if (_renderAudioSources == null || _renderAudioSources.Count < 1)
+                        throw new Exception("Audio Source not mapped");
+
+                    // Audio cannot be played out as is, so we throw an exception
+                    if (needsVirtualizing)
+                    {
+                        throw new Exception("Audio Driver capabilities cannot play out incoming channel count");
+                    }
+
+                    foreach (var audioSource in _renderAudioSources)
+                        AddRenderAudioSource(audioSource);
+                    break;
+
+                case AudioOutputType.VirtualSpeakers:
+                    if (OutputAudioSpeakers == null)
+                    {
+                        throw new Exception("Virtual Speaker not mapped");
+                    }
+
+                    if (OutputAudioSpeakers.GetChannelCount() < channelCount)
+                    {
+                        throw new Exception($"Virtual Speaker cannot play incoming channel count {channelCount}");
+                    }
+
+                    if (OutputAudioSpeakers.GetChannelCount() > channelCount)
+                    {
+                        OutputAudioSpeakers.StopAll();
+                    }
+
+                    if (channelCount == 6)
+                    {
+                        OutputAudioSpeakers.SetChannelMap(_pc.getChannelMap);
+                    }
+                    _renderer.AddVirtualAudioSpeaker(OutputAudioSpeakers, _pc.getInboundChannelCount);
+                    break;
+            }
+        }
+
+        private VirtualAudioSpeaker CreateVirtualSpeaker(int channelCount)
+        {
+            // No need to recreate an audio speaker if
+            // there is an existing one that supports the incoming
+            // channel count
+            if (_defaultAudioSpeaker != null && channelCount <= _defaultAudioSpeaker.GetChannelCount())
+                return _defaultAudioSpeaker;
+            else
+                GameObject.Destroy(_defaultAudioSpeaker);
+
+            if (audioAnchorTransform == null)
+                audioAnchorTransform = transform;
+            
+            string prefabName = getPrefabName(channelCount);
+            
+            if(string.IsNullOrEmpty(prefabName))
+                return null;
+
+            GameObject obj = Instantiate(Resources.Load(prefabName) as GameObject, audioAnchorTransform);
+            _defaultAudioSpeaker = obj.GetComponent<VirtualAudioSpeaker>();
+            if (defaultAudioConfiguration != null)
+                _defaultAudioSpeaker.UpdateAudioConfiguration(defaultAudioConfiguration);
+            return _defaultAudioSpeaker;
         }
 
         private void OnDestroy()
@@ -327,6 +539,7 @@ namespace Dolby.Millicast
         {
             isSubscribing = false;
             _localSdpSent = false;
+            channelsCount = -1;
             _signaling = null;
             _pc?.Disconnect();
             _pc = null;
@@ -357,11 +570,13 @@ namespace Dolby.Millicast
 
             if (string.IsNullOrEmpty(credentials.accountId))
                 message = "Stream Account ID";
+            
             if (string.IsNullOrEmpty(credentials.url))
                 message += string.IsNullOrEmpty(message) ? "Subscriber URL" : ", Subscriber URL";
 
             return message + " can't be Empty. Please configure in Credentials Scriptable Object";
         }
+
 
         private void AddRenderTargets()
         {
@@ -373,11 +588,6 @@ namespace Dolby.Millicast
             foreach (var image in _renderImages)
             {
                 AddVideoRenderTarget(image);
-            }
-
-            foreach (var audioSource in _renderAudioSources)
-            {
-                AddRenderAudioSource(audioSource);
             }
         }
 
@@ -507,6 +717,29 @@ namespace Dolby.Millicast
         public void RemoveRenderAudioSource(AudioSource source)
         {
             _renderer.RemoveAudioTarget(source);
+        }
+        private SimulcastInfo GetSimulcastInfo()
+        {
+            return simulCastInfo;
+        }
+        /// <summary>
+        /// Set a simulcast layer
+        /// </summary>
+        /// <param name="layer"> Expects Layer object which can be found in Layers class in SimulcastInfo.  </param>
+        public void SetSimulcastLayer(Layer layer)
+        {
+            if(layer != null)
+            {
+                var layerpayload = new Dictionary<string, dynamic>();
+                var payload = new Dictionary<string, dynamic>();
+                payload["encodingId"] = layer.EncodingId;
+                payload["spatialLayerId"] = layer.SpatialLayerId;
+                payload["temporalLayerId"] = layer.TemporalLayerId;
+                layerpayload["layer"] = payload;
+                _signaling.Send(ISignaling.Event.SELECT, layerpayload);
+            }
+            else
+                Debug.Log("Selected Layer not found");
         }
     }
 

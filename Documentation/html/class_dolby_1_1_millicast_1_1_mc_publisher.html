@@ -75,6 +75,7 @@ $(function() {
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pro-methods">Protected Member Functions</a> &#124;
 <a href="#properties">Properties</a> &#124;
 <a href="#events">Events</a> &#124;
 <a href="class_dolby_1_1_millicast_1_1_mc_publisher-members.html">List of all members</a>  </div>
@@ -99,12 +100,18 @@ delegate void&#160;</td><td class="memItemRight" valign="bottom"><b>DelegatePubl
 <tr class="memitem:a20b682472ab0387852a578633d789bd0"><td class="memItemLeft" align="right" valign="top"><a id="a20b682472ab0387852a578633d789bd0" name="a20b682472ab0387852a578633d789bd0"></a>
 delegate void&#160;</td><td class="memItemRight" valign="bottom"><b>DelegateOnViewerCount</b> (<a class="el" href="class_dolby_1_1_millicast_1_1_mc_publisher.html">McPublisher</a> publisher, int count)</td></tr>
 <tr class="separator:a20b682472ab0387852a578633d789bd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5bbe8ae404a239f5fd4e897446ad1c80"><td class="memItemLeft" align="right" valign="top"><a id="a5bbe8ae404a239f5fd4e897446ad1c80" name="a5bbe8ae404a239f5fd4e897446ad1c80"></a>
+delegate void&#160;</td><td class="memItemRight" valign="bottom"><b>DelegateOnLayerEvent</b> (<a class="el" href="class_dolby_1_1_millicast_1_1_mc_publisher.html">McPublisher</a> publisher, <a class="el" href="class_dolby_1_1_millicast_1_1_simulcast_info.html">SimulcastInfo</a> info)</td></tr>
+<tr class="separator:a5bbe8ae404a239f5fd4e897446ad1c80"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a433627e05441f483029440b55458285a"><td class="memItemLeft" align="right" valign="top"><a id="a433627e05441f483029440b55458285a" name="a433627e05441f483029440b55458285a"></a>
 delegate void&#160;</td><td class="memItemRight" valign="bottom"><b>DelegateOnConnectionError</b> (<a class="el" href="class_dolby_1_1_millicast_1_1_mc_publisher.html">McPublisher</a> publisher, string message)</td></tr>
 <tr class="separator:a433627e05441f483029440b55458285a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab0a7d18954c69d274c7be3b73cba644d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_dolby_1_1_millicast_1_1_mc_publisher.html#ab0a7d18954c69d274c7be3b73cba644d">SetVideoSource</a> (Camera source, <a class="el" href="class_dolby_1_1_millicast_1_1_stream_size.html">StreamSize</a> resolution=null)</td></tr>
 <tr class="memdesc:ab0a7d18954c69d274c7be3b73cba644d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the video source for capture. Call with null as the source to remove the currently set video source.  <br /></td></tr>
 <tr class="separator:ab0a7d18954c69d274c7be3b73cba644d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a448776ff849090e1fd7250f5970dea56"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_dolby_1_1_millicast_1_1_mc_publisher.html#a448776ff849090e1fd7250f5970dea56">SetVideoSource</a> (RenderTexture source)</td></tr>
+<tr class="memdesc:a448776ff849090e1fd7250f5970dea56"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the video source for capture. Call with null as the source to remove the currently set video source.  <br /></td></tr>
+<tr class="separator:a448776ff849090e1fd7250f5970dea56"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad547eeecbe9751b40de274a763c4fd6b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_dolby_1_1_millicast_1_1_mc_publisher.html#ad547eeecbe9751b40de274a763c4fd6b">SetAudioSource</a> (AudioSource source)</td></tr>
 <tr class="memdesc:ad547eeecbe9751b40de274a763c4fd6b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the audio source to be captured when publishing. This will replace any previously set AudioSource through SetAudioSource  <br /></td></tr>
 <tr class="separator:ad547eeecbe9751b40de274a763c4fd6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -112,16 +119,26 @@ delegate void&#160;</td><td class="memItemRight" valign="bottom"><b>DelegateOnCo
 void&#160;</td><td class="memItemRight" valign="bottom"><b>SetAudioListenerAsSource</b> ()</td></tr>
 <tr class="memdesc:a207782839bbf4ba91da689af712e663b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the current AudioListener in the scene as an audio input to publishing. Resets previously set AudioSource through SetAudioSource. Throws an Exception if the game object does not contain an AudioListener. <br /></td></tr>
 <tr class="separator:a207782839bbf4ba91da689af712e663b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3fa23b3509374cb2fa6488165c3bd5f7"><td class="memItemLeft" align="right" valign="top"><a id="a3fa23b3509374cb2fa6488165c3bd5f7" name="a3fa23b3509374cb2fa6488165c3bd5f7"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>SetVideoConfig</b> (<a class="el" href="class_dolby_1_1_millicast_1_1_video_config.html">VideoConfig</a> config)</td></tr>
-<tr class="memdesc:a3fa23b3509374cb2fa6488165c3bd5f7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update video configuration. Can be called while publishing; config will be applied in real-time even while publishing. </p><dl class="params"><dt>Parameters</dt><dd>
+<tr class="memitem:ade1d46089eae207edb3ece497a40acbe"><td class="memItemLeft" align="right" valign="top"><a id="ade1d46089eae207edb3ece497a40acbe" name="ade1d46089eae207edb3ece497a40acbe"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>SetVideoConfig</b> (<a class="el" href="class_dolby_1_1_millicast_1_1_video_config.html">VideoConfig</a> config, bool simulcast=false)</td></tr>
+<tr class="memdesc:ade1d46089eae207edb3ece497a40acbe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update video configuration. Can be called while publishing; config will be applied in real-time even while publishing. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">config</td><td>Video Configuration.</td></tr>
   </table>
   </dd>
 </dl>
 <br /></td></tr>
-<tr class="separator:a3fa23b3509374cb2fa6488165c3bd5f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:ade1d46089eae207edb3ece497a40acbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a205a8c66344fe86f3f5bc2ed755ace48"><td class="memItemLeft" align="right" valign="top"><a id="a205a8c66344fe86f3f5bc2ed755ace48" name="a205a8c66344fe86f3f5bc2ed755ace48"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>SetSimulcastData</b> (<a class="el" href="class_dolby_1_1_millicast_1_1_simulcast_layers.html">SimulcastLayers</a> layersinfo)</td></tr>
+<tr class="memdesc:a205a8c66344fe86f3f5bc2ed755ace48"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update simulcast layer's encoding parameter values. Can be called while publishing; Values will be applied in real-time even while publishing. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">layersinfo</td><td>SimulcastLayers.</td></tr>
+  </table>
+  </dd>
+</dl>
+<br /></td></tr>
+<tr class="separator:a205a8c66344fe86f3f5bc2ed755ace48"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad547e5039d2487d32091a68d73abf04c"><td class="memItemLeft" align="right" valign="top"><a id="ad547e5039d2487d32091a68d73abf04c" name="ad547e5039d2487d32091a68d73abf04c"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>Publish</b> ()</td></tr>
 <tr class="memdesc:ad547e5039d2487d32091a68d73abf04c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Publish a stream. <br /></td></tr>
@@ -150,6 +167,12 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>UnPublish</b> ()</td>
 <tr class="memdesc:afcbc59f8e542c1c1dc552d578c99547b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove an audio source so that it stops rendering the local stream.  <br /></td></tr>
 <tr class="separator:afcbc59f8e542c1c1dc552d578c99547b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
+Protected Member Functions</h2></td></tr>
+<tr class="memitem:a297693f32e29f28e3f612fdf58653cdc"><td class="memItemLeft" align="right" valign="top"><a id="a297693f32e29f28e3f612fdf58653cdc" name="a297693f32e29f28e3f612fdf58653cdc"></a>
+VideoStreamTrack&#160;</td><td class="memItemRight" valign="bottom"><b>CreateRenderTextureStreamTrack</b> (RenderTexture targetTexture)</td></tr>
+<tr class="separator:a297693f32e29f28e3f612fdf58653cdc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="properties" name="properties"></a>
 Properties</h2></td></tr>
 <tr class="memitem:aa091f2626e46a052b23c3f10b2b2deb6"><td class="memItemLeft" align="right" valign="top"><a id="aa091f2626e46a052b23c3f10b2b2deb6" name="aa091f2626e46a052b23c3f10b2b2deb6"></a>
@@ -160,12 +183,16 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>isPublishing</b> = fa
 string&#160;</td><td class="memItemRight" valign="bottom"><b>streamName</b><code> [get, set]</code></td></tr>
 <tr class="memdesc:accc4b2ddf6e3b0d735bd7b664cf9767c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The stream name to publish to. <br /></td></tr>
 <tr class="separator:accc4b2ddf6e3b0d735bd7b664cf9767c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3a877071fb8979e21377067c77d81207"><td class="memItemLeft" align="right" valign="top"><a id="a3a877071fb8979e21377067c77d81207" name="a3a877071fb8979e21377067c77d81207"></a>
-<a class="el" href="class_dolby_1_1_millicast_1_1_video_configuration.html">VideoConfiguration</a>&#160;</td><td class="memItemRight" valign="bottom"><b>videoConfigData</b><code> [get]</code></td></tr>
-<tr class="separator:a3a877071fb8979e21377067c77d81207"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af6c3e8dab93dbdd9820263fc3b1ebbb5"><td class="memItemLeft" align="right" valign="top"><a id="af6c3e8dab93dbdd9820263fc3b1ebbb5" name="af6c3e8dab93dbdd9820263fc3b1ebbb5"></a>
 <a class="el" href="class_dolby_1_1_millicast_1_1_credentials.html">Credentials</a>&#160;</td><td class="memItemRight" valign="bottom"><b>credentials</b> = null<code> [get, set]</code></td></tr>
 <tr class="separator:af6c3e8dab93dbdd9820263fc3b1ebbb5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3a877071fb8979e21377067c77d81207"><td class="memItemLeft" align="right" valign="top"><a id="a3a877071fb8979e21377067c77d81207" name="a3a877071fb8979e21377067c77d81207"></a>
+<a class="el" href="class_dolby_1_1_millicast_1_1_video_configuration.html">VideoConfiguration</a>&#160;</td><td class="memItemRight" valign="bottom"><b>videoConfigData</b><code> [get]</code></td></tr>
+<tr class="separator:a3a877071fb8979e21377067c77d81207"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7ad5daeeb136f7ba47972994ad0d1973"><td class="memItemLeft" align="right" valign="top"><a id="a7ad5daeeb136f7ba47972994ad0d1973" name="a7ad5daeeb136f7ba47972994ad0d1973"></a>
+string&#160;</td><td class="memItemRight" valign="bottom"><b>sourceid</b><code> [get, set]</code></td></tr>
+<tr class="memdesc:a7ad5daeeb136f7ba47972994ad0d1973"><td class="mdescLeft">&#160;</td><td class="mdescRight">The stream name to publish to. <br /></td></tr>
+<tr class="separator:a7ad5daeeb136f7ba47972994ad0d1973"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9a88bad84b4aa2bf2db51b052447645b"><td class="memItemLeft" align="right" valign="top"><a id="a9a88bad84b4aa2bf2db51b052447645b" name="a9a88bad84b4aa2bf2db51b052447645b"></a>
 <a class="el" href="class_dolby_1_1_millicast_1_1_publisher_options.html">PublisherOptions</a>&#160;</td><td class="memItemRight" valign="bottom"><b>options</b><code> [get, set]</code></td></tr>
 <tr class="memdesc:a9a88bad84b4aa2bf2db51b052447645b"><td class="mdescLeft">&#160;</td><td class="mdescRight">You have to set the publisher options before <code>Publish</code> is called. <br /></td></tr>
@@ -181,6 +208,10 @@ DelegatePublisher&#160;</td><td class="memItemRight" valign="bottom"><b>OnPublis
 DelegateOnViewerCount&#160;</td><td class="memItemRight" valign="bottom"><b>OnViewerCount</b></td></tr>
 <tr class="memdesc:ab05420023840d44be3e535e3b332f389"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when the viewer count has been updated. <br /></td></tr>
 <tr class="separator:ab05420023840d44be3e535e3b332f389"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b9c1085ac90556a49d79a1835c78a77"><td class="memItemLeft" align="right" valign="top"><a id="a8b9c1085ac90556a49d79a1835c78a77" name="a8b9c1085ac90556a49d79a1835c78a77"></a>
+DelegateOnLayerEvent&#160;</td><td class="memItemRight" valign="bottom"><b>OnSimulcastlayerInfo</b></td></tr>
+<tr class="memdesc:a8b9c1085ac90556a49d79a1835c78a77"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when the Simulcast Layers data event triggered. <br /></td></tr>
+<tr class="separator:a8b9c1085ac90556a49d79a1835c78a77"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad30ea4194f5f7e5c28c6e4721858f0e1"><td class="memItemLeft" align="right" valign="top"><a id="ad30ea4194f5f7e5c28c6e4721858f0e1" name="ad30ea4194f5f7e5c28c6e4721858f0e1"></a>
 DelegateOnConnectionError&#160;</td><td class="memItemRight" valign="bottom"><b>OnConnectionError</b></td></tr>
 <tr class="memdesc:ad30ea4194f5f7e5c28c6e4721858f0e1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Event called when the there is a connection error to the service. <br /></td></tr>
@@ -373,7 +404,7 @@ DelegateOnConnectionError&#160;</td><td class="memItemRight" valign="bottom"><b>
 </div>
 </div>
 <a id="ab0a7d18954c69d274c7be3b73cba644d" name="ab0a7d18954c69d274c7be3b73cba644d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab0a7d18954c69d274c7be3b73cba644d">&#9670;&#160;</a></span>SetVideoSource()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ab0a7d18954c69d274c7be3b73cba644d">&#9670;&#160;</a></span>SetVideoSource() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -402,6 +433,33 @@ DelegateOnConnectionError&#160;</td><td class="memItemRight" valign="bottom"><b>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">source</td><td>The camera source to capture from</td></tr>
+    <tr><td class="paramname">resolution</td><td>The capturing resolution</td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a448776ff849090e1fd7250f5970dea56" name="a448776ff849090e1fd7250f5970dea56"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a448776ff849090e1fd7250f5970dea56">&#9670;&#160;</a></span>SetVideoSource() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Dolby.Millicast.McPublisher.SetVideoSource </td>
+          <td>(</td>
+          <td class="paramtype">RenderTexture&#160;</td>
+          <td class="paramname"><em>source</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Set the video source for capture. Call with null as the source to remove the currently set video source. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">source</td><td>The Target Render Texture source to capture from</td></tr>
     <tr><td class="paramname">resolution</td><td>The capturing resolution</td></tr>
   </table>
   </dd>
