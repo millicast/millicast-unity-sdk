@@ -59,28 +59,27 @@ namespace Dolby.Millicast
 
         private bool isUpdateStarted = false;
         private const string CopyCameraName = "mcPublisherCam";
-
         public delegate void DelegatePublisher(McPublisher publisher);
+        
         /// <summary>
         /// Event called when the publisher is publishing
         /// (i.e. media content is being delivered to the Millicast service.)
         /// </summary>
         public event DelegatePublisher OnPublishing;
-
         public delegate void DelegateOnViewerCount(McPublisher publisher, int count);
+        
         /// <summary>
         /// Event called when the viewer count has been updated.
         /// </summary>
         public event DelegateOnViewerCount OnViewerCount;
         public delegate void DelegateOnLayerEvent(McPublisher publisher, SimulcastInfo info);
+        
         /// <summary>
         /// Event called when the Simulcast Layers data event triggered.
         /// </summary>
         public event DelegateOnLayerEvent OnSimulcastlayerInfo;
-
-
-
         public delegate void DelegateOnConnectionError(McPublisher publisher, string message);
+        
         /// <summary>
         /// Event called when the there is a connection error to the service.
         /// </summary>
@@ -113,12 +112,14 @@ namespace Dolby.Millicast
             get => _sourceId;
             set => _sourceId = value;
         }
+
         [SerializeField]
+        private McCredentials _credentials;
         /// <summary>
         /// You have to set the publishing credentials
         /// before <c>Publish</c> is called.
         /// </summary>
-        private McCredentials _credentials;
+
         [SerializeField]
         [Tooltip("Publish as soon as the script start")]
         private bool _publishOnStart = false;
@@ -163,20 +164,7 @@ namespace Dolby.Millicast
         
         [SerializeField] private bool enableMultiSource;
         [SerializeField][DrawIf(nameof(enableMultiSource), true)]
-        private string _sourceId;
-        /// <summary>
-        /// The stream name to publish to. 
-        /// </summary>
-        public string sourceid
-        {
-            get => _sourceId;
-            set 
-            {
-                enableMultiSource = true;
-                _sourceId = value;
-            }
-        }
-       
+
         private VideoConfig _videoConfig;
         private SimulcastLayers _simulcastLayersInfo;
         private PublisherOptions _options = new PublisherOptions();
@@ -248,11 +236,7 @@ namespace Dolby.Millicast
             var codecName = _options.videoCodec.ToString();
             payload["codec"] = codecName;
 
-<<<<<<< HEAD
             if (enableMultiSource && !string.IsNullOrEmpty(_sourceId))
-=======
-            if (!string.IsNullOrEmpty(_sourceId))
->>>>>>> 429dda7 (added multi source support (wip))
             {
                 payload["sourceId"] = _sourceId;
             }
@@ -292,7 +276,6 @@ namespace Dolby.Millicast
                         break;
                 }
             };
-
             StartCoroutine(AwaitSignalingMessages());
         }
 
@@ -361,7 +344,7 @@ namespace Dolby.Millicast
         {
             return 1000 * bitrate_kbps;
         }
-
+        
         private void RefreshSimulcastValues()
         {
             foreach (var transceiver in _pc.GetTransceivers())
@@ -494,6 +477,7 @@ namespace Dolby.Millicast
                     !string.IsNullOrEmpty(credentials.accountId);
 
         }
+
         private bool CheckValidCredentials(Credentials credentials)
         {
             return !string.IsNullOrEmpty(streamName) &&
@@ -501,6 +485,7 @@ namespace Dolby.Millicast
                    !string.IsNullOrEmpty(credentials.token) &&
                    !string.IsNullOrEmpty(credentials.accountId);
         }
+
         private string GetCredentialsErrorMessage(Credentials credentials)
         {
             string message = "";
@@ -515,7 +500,6 @@ namespace Dolby.Millicast
 
             return message + " can't be Empty. Please configure in Credentials Scriptable Object";
         }
-
 
         /// <summary>
         /// Remove all existing audio tracks associated with senders 
@@ -621,6 +605,7 @@ namespace Dolby.Millicast
                 }
             }
         }
+
         protected VideoStreamTrack CreateRenderTextureStreamTrack(RenderTexture targetTexture)
         {
             RenderTexture rt = null;
@@ -802,6 +787,7 @@ namespace Dolby.Millicast
             }
 
         }
+
         private void CheckAudioVideoSource()
         {
             if(streamType == StreamType.Audio || streamType == StreamType.Both)
@@ -832,7 +818,6 @@ namespace Dolby.Millicast
         /// </summary>
         public void Publish()
         {
-            
             // Reset the state before publishing
             Reset();
             CheckAudioVideoSource();
@@ -860,9 +845,7 @@ namespace Dolby.Millicast
                 }
             }
             
-
             // Prioritise UI creedntials
-
             if (CheckValidCredentials(_credentials) || credentials == null)
             {
                 credentials = new Credentials(_credentials, false);
@@ -931,7 +914,6 @@ namespace Dolby.Millicast
         {
             _renderer.AddVideoTarget(image);
         }
-
 
         /// <summary>
         /// Add an audio source that will render the local audio stream.

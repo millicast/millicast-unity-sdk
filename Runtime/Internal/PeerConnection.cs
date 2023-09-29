@@ -11,7 +11,6 @@ using Newtonsoft.Json;
 namespace Dolby.Millicast
 {
 
-
   /// <summary>
   /// reference: https://source.chromium.org/chromium/chromium/src/+/main:third_party/webrtc/api/video_codecs/h264_profile_level_id.h
   /// All values are equal to ten times the level number, except level 1b which is
@@ -122,17 +121,13 @@ namespace Dolby.Millicast
 
         if (level < H264Level.kLevel4)
           maximumSupportedRes = Capabilities.SupportedResolutions.RES_720P;
-
       }
-
       return maximumSupportedRes;
     }
   }
 
   internal class PeerConnection
   {
-
-
     // This is a specific coroutine runner, to prevent us
     // from instantiating PeerConnection as a component
     public delegate Coroutine DelegateOnCoroutineRunRequested(IEnumerator iEnumerator);
@@ -508,15 +503,6 @@ namespace Dolby.Millicast
       }
     }
 
-    public string AddTransceiver(TrackKind kind)
-    {
-      return _pc.AddTransceiver(kind).Mid;
-
-    public RTCRtpTransceiver AddTransceiver(TrackKind kind, RTCRtpTransceiverInit init = null)
-    {
-      return _pc.AddTransceiver(kind, init);
-    }
-
     public void Disconnect()
     {
       _pc?.Close();
@@ -526,11 +512,16 @@ namespace Dolby.Millicast
     {
       return _pc.AddTrack(track);
     }
-    public RTCRtpTransceiver AddTransceiver(MediaStreamTrack track, RTCRtpTransceiverInit init=null)
+
+    public RTCRtpTransceiver AddTransceiver(TrackKind kind, RTCRtpTransceiverInit init = null)
     {
-      return _pc.AddTransceiver(track, init);
+      return _pc.AddTransceiver(kind, init);
     }
 
+    public RTCRtpTransceiver AddTransceiver(MediaStreamTrack track, RTCRtpTransceiverInit init = null)
+    {
+        return _pc.AddTransceiver(track, init);
+    }
 
     public void RemoveTrack(MediaStreamTrack track)
     {

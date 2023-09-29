@@ -9,13 +9,7 @@ namespace Dolby.Millicast
     {
         Mono,
         Stereo,
-<<<<<<< HEAD
-        [InspectorName("5.1")]
-        Mode5point1
-
-=======
         [InspectorName("5.1")] Mode5point1
->>>>>>> df61559 (code cleanup for multi stream support feature)
     }
 
 

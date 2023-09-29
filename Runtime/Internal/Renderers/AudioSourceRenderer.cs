@@ -10,31 +10,40 @@ namespace Dolby.Millicast
 
     internal class MultiSourceAudioRenderer
   {
-      public string sourceId;
-      private HashSet<AudioSource> _renderAudioSources = new HashSet<AudioSource>();
-      private AudioStreamTrack _renderAudioTrack;
+    List<MultiSourceAudioRenderer> multiSourceAudioRenderer = new List<MultiSourceAudioRenderer>();
 
-      internal MultiSourceAudioRenderer(string streamId)
-      {
+    public string sourceId;
+    private HashSet<AudioSource> _renderAudioSources = new HashSet<AudioSource>();
+    private AudioStreamTrack _renderAudioTrack;
+
+    internal MultiSourceAudioRenderer(string streamId)
+    {
         this.sourceId = streamId;
-      }
+    }
 
     public void AddAudioSource(AudioSource source)
     {
-      _renderAudioSources.Add(source);
-      if (_renderAudioTrack != null)
-      {
-        source.SetTrack(_renderAudioTrack);
-        source.loop = true;
-        source.Play();
-      }
+        _renderAudioSources.Add(source);
+        if (_renderAudioTrack != null)
+        {
+            source.SetTrack(_renderAudioTrack);
+            source.loop = true;
+            source.Play();
+        }
     }
 
     public void AddVirtualAudioSpeaker(VirtualAudioSpeaker speaker, int channelCount)
     {
         RefreshAudioTrackWithIndex(speaker.getAudioSpeakers(channelCount), channelCount);
     }
-    private void RefreshAudioTrackWithIndex(AudioSource[] audiosources, int channelCount)
+    public void AddVirtualAudioSpeaker(VirtualAudioSpeaker speaker, string sourceId, int channelCount)
+    {
+        MultiSourceAudioRenderer audioRenderer = multiSourceAudioRenderer.Find(x => x.sourceId.Equals(sourceId));
+        if (audioRenderer == null)
+            return;
+        audioRenderer.AddVirtualAudioSpeaker(speaker, channelCount);
+    }
+        private void RefreshAudioTrackWithIndex(AudioSource[] audiosources, int channelCount)
     {
       if(_renderAudioTrack != null && audiosources != null && audiosources.Length > 0)
        {
@@ -71,8 +80,8 @@ namespace Dolby.Millicast
 
       _renderAudioTrack = track;
     }
-
   }
+
 
   /// <summary>
   /// This class implements the common functionality of 
@@ -121,36 +130,31 @@ namespace Dolby.Millicast
         audioRenderer.AddAudioSource(source);
     }
 
-    public void AddVirtualAudioSpeaker(VirtualAudioSpeaker speaker)
+    public void AddVirtualAudioSpeaker(VirtualAudioSpeaker speaker, int channelCount)
     {
-        RefreshAudioTrackWithIndex(speaker.getAudioSpeakers());
+        RefreshAudioTrackWithIndex(speaker.getAudioSpeakers(channelCount), channelCount);
     }
-    public void AddVirtualAudioSpeaker(VirtualAudioSpeaker speaker, string sourceId)
+
+    public void AddVirtualAudioSpeaker(VirtualAudioSpeaker speaker, string sourceId,int channelCount)
     {
         MultiSourceAudioRenderer audioRenderer = multiSourceAudioRenderer.Find(x => x.sourceId.Equals(sourceId));
         if(audioRenderer == null)
           return;
-        audioRenderer.AddVirtualAudioSpeaker(speaker);
+        audioRenderer.AddVirtualAudioSpeaker(speaker, channelCount);
     }
-    private void RefreshAudioTrackWithIndex(AudioSource[] audiosources)
+
+    private void RefreshAudioTrackWithIndex(AudioSource[] audiosources, int channelCount)
     {
       if(_renderAudioTrack != null && audiosources != null && audiosources.Length > 0)
        {
           int index = 0;
           foreach (var s in audiosources)
           {
-            s.SetTrack(_renderAudioTrack, index++, StatsParser.inboundAudioStreamChannelCount);
+            s.SetTrack(_renderAudioTrack, index++, channelCount);
             s.loop = true;
             s.Play();
           }
        } 
-    }
-    private void RefreshAudioTrackWithIndex(AudioSource[] audiosources, string sourceId)
-    {
-      MultiSourceAudioRenderer audioRenderer = multiSourceAudioRenderer.Find(x => x.sourceId.Equals(sourceId));
-        if(audioRenderer == null)
-          return;
-        audioRenderer.RefreshAudioTrackWithIndex(audiosources);
     }
 
     /// <summary>
@@ -166,6 +170,7 @@ namespace Dolby.Millicast
         source.Stop();
       }
     }
+
      public void RemoveAudioSource(AudioSource source, string sourceId)
     {
       MultiSourceAudioRenderer audioRenderer = multiSourceAudioRenderer.Find(x => x.sourceId.Equals(sourceId));
@@ -173,6 +178,7 @@ namespace Dolby.Millicast
           return;
         audioRenderer.RemoveAudioSource(source);
     }
+
     public void SetRenderAudioTrack(AudioStreamTrack track)
     {
       foreach (var s in _renderAudioSources)
@@ -184,6 +190,7 @@ namespace Dolby.Millicast
 
       _renderAudioTrack = track;
     }
+
     public void SetRenderAudioTrack(AudioStreamTrack track, string sourceId)
     {
      MultiSourceAudioRenderer audioRenderer = multiSourceAudioRenderer.Find(x => x.sourceId.Equals(sourceId));
@@ -197,6 +204,5 @@ namespace Dolby.Millicast
       _renderAudioSources.Clear();
     }
   }
+
 }
-
-
