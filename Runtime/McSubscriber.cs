@@ -17,6 +17,46 @@ namespace Dolby.Millicast
 
     }
 
+    [System.Serializable]
+    public class ActiveSourceEvent : UnityEvent<McSubscriber, ProjectionData>
+    {
+
+    }
+
+    public class ProjectionData
+    {
+        public string sourceId;
+        public List<TrackData> tracks = new List<TrackData>();        
+    }
+
+    public class TrackData
+    {
+        public string TrackId;
+
+        public string Mid;
+
+        public string Media;
+
+        public bool waitForTrack;
+        public RTCRtpTransceiver transceiver;
+    }
+
+    [System.Serializable]
+    public class MultiSourceMedia
+    {
+        public string streamId;
+
+        [Tooltip("Add your Materials here to rendering incoming video streams")]
+        public List<Material> _renderMaterials = new List<Material>();
+
+        [Tooltip("Add your RawImages here for rendering incoming video streams. For UI rendering")]
+        public List<RawImage> _renderImages = new List<RawImage>();
+        
+        [Tooltip("Add your AudioSources here to render incoming audio streams")]
+        public List<AudioSource> _renderAudioSources = new List<AudioSource>();
+       
+    }
+
     /// <summary>
     /// The Millicast subscriber class. Allows users to subscribe to Millicast streams.
     /// </summary>
@@ -35,6 +75,7 @@ namespace Dolby.Millicast
         // multisource) to RawImages for rendering
         // Those source ids may not be set.
         private Dictionary<string, RawImage> _receiveImages;
+        private Queue<ProjectionData> incomingStreamQue = new Queue<ProjectionData>();
 
         private WrapperRenderer _renderer = new WrapperRenderer();
         /// <summary>
@@ -94,6 +135,8 @@ namespace Dolby.Millicast
             get => this._renderMaterials;
         }
 
+        [SerializeField] public MediaRenderers defaultMediaRenderer = new MediaRenderers();
+        [SerializeField] private List<MultiSourceMediaRenderer> multiSourceMediaList = new List<MultiSourceMediaRenderer>();
 
         [SerializeField]
         [Tooltip("Add your RawImages here for rendering incoming video streams. For UI rendering")]
@@ -109,9 +152,7 @@ namespace Dolby.Millicast
         }
 
         [Header("\nAudio Settings :\n")]
-
         public AudioOutputType audioOutputType;
-
         [Tooltip("default Audio configuration.")]
         [SerializeField][DrawIf("audioOutputType", AudioOutputType.Auto)]
         private AudioConfiguration defaultAudioConfiguration;
@@ -158,7 +199,12 @@ namespace Dolby.Millicast
         }
 
         [Header("\nEvent Listeners :\n")]
+        [SerializeField] private List<MultiSourceMedia> multSourceMediaList = new List<MultiSourceMedia>();
+        // public AdvancedAudioConfig AdvancedAudioConfiguration;
+        public List<VirtualAudioSpeaker> virtualAudioSpeakers;
         [SerializeField] private SimulcastEvent simulcastEvent;
+        [SerializeField] private ActiveSourceEvent activeSourceEvent;
+
         private SimulcastInfo simulCastInfo;
 
 
@@ -177,16 +223,24 @@ namespace Dolby.Millicast
 
         public delegate void DelegateOnConnectionError(McSubscriber subscribe, string message);
         public delegate void DelegateOnLayerEvent(McSubscriber subscribe, SimulcastInfo info);
+        public delegate void DelegateOnActiveEvent(McSubscriber subscribe, ProjectionData projectionData);
         /// <summary>
         /// Event called when the Simulcast Layers data event triggered.
         /// </summary>
         public event DelegateOnLayerEvent OnSimulcastlayerInfo;
+        public event DelegateOnActiveEvent OnActiveEventInfo;
         /// <summary>
         /// Event called when the there is a connection error to the service.
         /// </summary>
         public event DelegateOnConnectionError OnConnectionError;
         private int channelsCount = -1;
+        private List<ProjectionData> activeProjections = new List<ProjectionData>();
+        private ProjectionData activeProjection;
 
+        private MultiSourceMediaRenderer GetMediaRenderer(string sourceId)
+        {
+            return multiSourceMediaList.Find(x => x.sourceId.Equals(sourceId));
+        }
 
         /// <summary>
         /// Munge the remote sdp for subscribing.
@@ -252,6 +306,23 @@ namespace Dolby.Millicast
                 {
                     case ISignaling.Event.VIEWER_COUNT:
                         OnViewerCount?.Invoke(this, payload.viewercount);
+                        break;
+                    case ISignaling.Event.ACTIVE:
+                        Debug.Log("Active Event received:"+payload.sourceId);
+                        if(!string.IsNullOrEmpty(payload.sourceId))
+                        {
+                            ProjectionData projectionData = OnActiveEvent(payload.sourceId, payload.tracks);
+                            if(projectionData != null)
+                            {
+                                OnActiveEventInfo?.Invoke(this, projectionData);
+                                activeSourceEvent?.Invoke(this, projectionData);
+                            }  
+                        } 
+                        break;
+                    case ISignaling.Event.INACTIVE:
+                        Debug.Log("In Active Event received:"+payload.sourceId);
+                        if(!string.IsNullOrEmpty(payload.sourceId))
+                           OnInActiveEvent(payload.sourceId);
                         break;
                     case ISignaling.Event.LAYERS:
                         try
@@ -348,6 +419,47 @@ namespace Dolby.Millicast
             _pc.SetUp(_signaling, _rtcConfiguration, true);
         }
 
+        private void UpdateMediaID(string id, string mediaType)
+        {
+            if (activeProjection != null)
+                AddVideoStreamMediaId(id, mediaType);
+        }
+
+        private void SetAudioTrack(AudioStreamTrack track, string sourceId)
+        {
+            if (string.IsNullOrEmpty(sourceId))
+                defaultMediaRenderer.SetAudioTrack(track);
+            else
+            {
+                MultiSourceMediaRenderer media = GetMediaRenderer(sourceId);
+                if (media != null)
+                    media.SetAudioTrack(track);
+            }
+        }
+
+        private void AddStream(string sourceId)
+        {
+            MultiSourceMediaRenderer media = GetMediaRenderer(sourceId);
+            if (media != null)
+            {
+                media.AddStream(sourceId);
+                media.AddRenderTargets();
+                media.AddAudioRenderTargets();
+            }
+            else
+                Debug.LogError("Failed to get mediaRenderer fr the source:" + sourceId);
+        }
+
+        public void AddVideoStreamMediaId(string mediaId, string type)
+        {
+            Debug.Log("added stream:"+type+" = "+mediaId);
+            foreach (var item in activeProjection.tracks)
+            {
+                if(type.Equals(item.TrackId.ToLower()))
+                    item.Mid = mediaId;
+            }
+        }
+
         void Awake()
         {
             // Http Authentication
@@ -393,18 +505,62 @@ namespace Dolby.Millicast
         void Start()
         {
             OnSimulcastlayerInfo += OnSimulcastLayerEvent;
+            OnActiveEventInfo += OnProjectInfoAvailable;
             if (_subscribeOnStart)
             {
                 Subscribe();
             }
         }
+
         private void Update()
         {
             _signaling?.Dispatch();
             if (_pc != null && _pc.getInboundChannelCount > 0 && channelsCount != _pc.getInboundChannelCount)
             {
                 channelsCount = _pc.getInboundChannelCount;
-                AddAudioRenderer(channelsCount);
+                MediaRenderers mediaRenderer = activeProjection != null ? GetMediaRenderer(activeProjection.sourceId) : defaultMediaRenderer;
+                VirtualAudioSpeaker speaker = GetVirtualAudioSpeaker(mediaRenderer);
+                if (speaker != null)
+                {
+                    speaker.SetChannelMap(_pc.getChannelMap);
+                    mediaRenderer.AddVirtualAudioSpeaker(speaker, _pc.getInboundChannelCount);
+                }
+                else
+                {
+                    mediaRenderer.AddRenderAudioSource();
+                }
+
+            }
+        }
+
+        private VirtualAudioSpeaker GetVirtualAudioSpeaker(MediaRenderers mediaRenderer)
+        {
+            // In the case where the hardware is capable of playing
+            // the incoming number of channels, no need to virtualize.
+
+            bool needsVirtualization = false;
+            int hardwareSupportedChannelCount = AudioHelpers.GetAudioSpeakerModeIntFromEnum(AudioSettings.driverCapabilities);
+            if (hardwareSupportedChannelCount < _pc.getInboundChannelCount)
+            {
+                needsVirtualization = true;
+            }
+            Debug.Log($"Inbound channel count: {_pc.getInboundChannelCount}");
+            Debug.Log($"Hardware supported channel count: {hardwareSupportedChannelCount}");
+            Debug.Log($"Need to virtualize audio: {needsVirtualization}");
+            switch (_pc.getInboundChannelCount)
+            {
+                case 2:
+                    return mediaRenderer.virtualAudioSpeakers.Find(x => x.audioChannelType == VirtualSpeakerMode.Stereo);
+                case 6:
+                    VirtualAudioSpeaker speaker6 = mediaRenderer.virtualAudioSpeakers.Find(x => x.audioChannelType == VirtualSpeakerMode.Mode5point1);
+                    if (speaker6 == null && needsVirtualization)
+                    {
+                        GameObject obj = Instantiate(Resources.Load("Five_One_Speaker") as GameObject, transform);
+                        speaker6 = obj.GetComponent<VirtualAudioSpeaker>();
+                    }
+                    return speaker6;
+                default:
+                    return null;
             }
         }
 
@@ -553,6 +709,7 @@ namespace Dolby.Millicast
                    !string.IsNullOrEmpty(credentials.subscribe_url) &&
                    !string.IsNullOrEmpty(credentials.accountId);
         }
+
         private bool CheckValidCredentials(Credentials credentials)
         {
             if (credentials == null) return false;
@@ -562,6 +719,7 @@ namespace Dolby.Millicast
                    !string.IsNullOrEmpty(credentials.accountId);
 
         }
+
         private string GetCredentialsErrorMessage(Credentials credentials)
         {
             string message = "";
@@ -577,7 +735,6 @@ namespace Dolby.Millicast
             return message + " can't be Empty. Please configure in Credentials Scriptable Object";
         }
 
-
         private void AddRenderTargets()
         {
             foreach (var material in _renderMaterials)
@@ -587,10 +744,9 @@ namespace Dolby.Millicast
 
             foreach (var image in _renderImages)
             {
-                AddVideoRenderTarget(image);
+                AddVideoRenderTarget(_renderImages[0]);
             }
         }
-
 
         /// <summary>
         /// This will render incoming streams onto the mesh renderer
@@ -614,6 +770,7 @@ namespace Dolby.Millicast
                 }
             }
         }
+
         /// <summary>
         /// This will clear all render material Targets for the incoming video stream
         /// </summary>
@@ -622,6 +779,7 @@ namespace Dolby.Millicast
           _renderMaterials.Clear();
           _renderer.Clear();
         }
+        
         /// <summary>
         /// Subscribe to a stream.
         /// </summary>
@@ -640,7 +798,7 @@ namespace Dolby.Millicast
             {
                 throw new Exception(GetCredentialsErrorMessage(credentials));
             }
-            AddRenderTargets();
+            //AddRenderTargets();
             UpdateMeshRendererMaterial();
 
             if (!isUpdateStarted)
@@ -718,10 +876,12 @@ namespace Dolby.Millicast
         {
             _renderer.RemoveAudioTarget(source);
         }
+
         private SimulcastInfo GetSimulcastInfo()
         {
             return simulCastInfo;
         }
+
         /// <summary>
         /// Set a simulcast layer
         /// </summary>
@@ -740,6 +900,136 @@ namespace Dolby.Millicast
             }
             else
                 Debug.Log("Selected Layer not found");
+        }
+
+        private void OnProjectInfoAvailable(McSubscriber subscriberInstance, ProjectionData projectionData)
+        {
+            if(activeProjection != null)
+                incomingStreamQue.Enqueue(projectionData);
+            else
+                ProcessStream(projectionData);
+        }
+
+        private void ProcessPendingStreams()
+        {
+            if(activeProjection != null)
+                return;
+            
+            if(incomingStreamQue.TryDequeue(out ProjectionData projectionData))
+                ProcessStream(projectionData);
+        }
+
+        private ProjectionData OnActiveEvent(string sourceId, List<TrackInfo> tracks)
+        {
+            
+            ProjectionData projectionData = new ProjectionData();
+            projectionData.sourceId = sourceId;
+             foreach(var track in tracks)
+            {
+               TrackData data = new TrackData();
+                data.Media = track.media;
+                data.TrackId = track.trackId;
+                data.Mid = "";
+                projectionData.tracks.Add(data);
+            }
+            return projectionData;
+        }
+        private void ProcessStream(ProjectionData projectionData)
+        {
+            if(GetMediaRenderer(projectionData.sourceId) == null)
+                return;
+             AddStream(projectionData.sourceId);
+             RTCRtpTransceiverInit init = new RTCRtpTransceiverInit();
+             init.direction = RTCRtpTransceiverDirection.RecvOnly;
+            foreach(var track in projectionData.tracks)
+            {
+                track.Mid = "";
+                if(track.Media.ToLower().Equals("audio"))
+                {
+                   track.transceiver =  _pc.AddTransceiver(TrackKind.Audio, init);
+                   track.waitForTrack = true;
+                    Debug.Log("added audio transceiver: "+track.transceiver.Receiver.Track.Id);
+                }
+                else if(track.Media.ToLower().Equals("video"))
+                {
+                   track.transceiver = _pc.AddTransceiver(TrackKind.Video, init);
+                   track.waitForTrack = true;
+                    Debug.Log("added video transceiver: "+track.transceiver.Receiver.Track.Id);
+                }
+            }
+            activeProjection = projectionData;
+            StartCoroutine(CheckForTracks());
+        }
+
+        IEnumerator CheckForTracks()
+        {
+            while(activeProjection == null || activeProjection.tracks == null || activeProjection.tracks.Count != 2)
+                yield return new WaitForEndOfFrame();
+            while(string.IsNullOrEmpty(activeProjection.tracks[0].Mid) || string.IsNullOrEmpty(activeProjection.tracks[1].Mid))
+                yield return new WaitForEndOfFrame();
+
+             while(activeProjection.tracks[0].waitForTrack)
+                yield return new WaitForSeconds(1);
+
+              while(activeProjection.tracks[1].waitForTrack)
+                yield return new WaitForSeconds(1);
+
+            Project(activeProjection);
+        }
+
+        private void OnInActiveEvent(string sourceId)
+        {
+            foreach(var projectionData in activeProjections)
+            {
+                if(!projectionData.sourceId.Equals(sourceId))
+                    return;
+                List<string> mids = new List<string>();
+                foreach (var item in projectionData.tracks)
+                {
+                    mids.Add(item.Mid);
+                }
+                UnProject(mids);
+                break;
+            }
+        }
+
+        private void UnProject(List<string> mids)
+        {
+             var unprojectData = new Dictionary<string, dynamic>();
+             unprojectData["mediaIds"] = mids.ToArray();
+            _signaling.Send(ISignaling.Event.UNPROJECT, unprojectData);
+        }
+
+         public void Project(ProjectionData projectionData)
+        {
+            if(projectionData == null || string.IsNullOrEmpty(projectionData.sourceId) ||  projectionData.tracks == null)
+                return;
+           
+            var projectionDatapayload = new Dictionary<string, dynamic>();
+            List<Dictionary<string, dynamic>> projectionsList = new List<Dictionary<string, dynamic>>();
+            foreach(var data in projectionData.tracks)
+            {
+                    var info = new Dictionary<string, dynamic>();
+                    info["trackid"] = data.TrackId;
+                    info["mediaId"] = data.Mid;
+                    info["media"] = data.Media;
+                    Debug.Log("Source Id:"+projectionData.sourceId+", track Id:"+data.TrackId+", mediaId:"+data.Mid+", media: "+data.Media);
+                    projectionsList.Add(info);
+            }
+            
+            projectionDatapayload["sourceId"] = projectionData.sourceId;
+            projectionDatapayload["mapping"] = projectionsList.ToArray();
+            activeProjections.Add(projectionData);
+            Debug.Log("project added:"+projectionData.sourceId);
+            _signaling.Send(ISignaling.Event.PROJECT, projectionDatapayload);
+        }
+
+        void OnDisable()
+        {
+            foreach (var projectdata in activeProjections)
+            {
+               OnInActiveEvent(projectdata.sourceId);
+            }
         }
     }
 
