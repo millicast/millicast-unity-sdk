@@ -1,6 +1,6 @@
 {
   "name": "com.dolby.millicast",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "displayName": "Millicast",
   "description": "A Unity package to publish and view Millicast streams.",
   "unity": "2021.3",
@@ -17,11 +17,13 @@
     "streaming",
     "realtime"
   ],
-  "samples": [{
-    "displayName": "Reference Sample Scenes",
-    "description": "Millicast samples",
-    "path": "Samples~"
-  }],
+  "samples": [
+    {
+      "displayName": "Reference Sample Scenes",
+      "description": "Millicast samples",
+      "path": "Samples~"
+    }
+  ],
   "author": {
     "name": "Dolby",
     "email": "yousif.khalid@dolby.com",
