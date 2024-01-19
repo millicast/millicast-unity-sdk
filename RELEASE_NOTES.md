@@ -3,7 +3,9 @@
 > Description
 
 ### New Features
-* Introduce Frame Transformer API For `MCPublisher` & `MCSubscriber`. See [FrameMetadataExample.cs](Samples~/Scripts/FrameMetadataExample.cs) for an example script that embeds text metadata into each encoded frame and extracts it when received in the subscriber.
+* Introduce Frame Transformer API For `McPublisher` & `McSubscriber`. See [FrameMetadataExample.cs](Samples~/Scripts/FrameMetadataExample.cs) for an example script that embeds text metadata into each encoded frame and extracts it when received in the subscriber.
+
+* Simple example to show `WebCamTexture` publishing: [WebCamPublisherExample.cs](Samples~/Scripts/WebCamPublisherExample.cs)
 
 ### Bug Fixes
-* `StreamType.Both` is selected as a default for the MCPublisher rather than `StreamType.VideoOnly`.
+* `StreamType.Both` is selected as a default for the `McPublisher`. Previously it was set to `StreamType.VideoOnly`.
