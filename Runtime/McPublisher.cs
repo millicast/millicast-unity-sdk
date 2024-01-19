@@ -98,7 +98,7 @@ namespace Dolby.Millicast
     /// Delegate called when the there is an available audio frame to transform.
     ///</summary>
     private FrameMetadata.DelegateOnTransformableAudioFrame _onTransformableAudioFrame;
-
+    
     /// <summary>
     /// A boolean to reflect if the publisher is currently
     /// publishing. 
@@ -126,7 +126,7 @@ namespace Dolby.Millicast
     [Tooltip("Publish as soon as the script start")]
     private bool _publishOnStart = false;
 
-    public StreamType streamType;
+    public StreamType streamType = StreamType.Both;
 
     [Header("Video Configuration Settings :\n")]
     [Tooltip("Assign VideoConfiguration Scriptable Object reference here.")]

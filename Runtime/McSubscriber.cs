@@ -124,7 +124,7 @@ namespace Dolby.Millicast
       get => this._renderAudioSources;
     }
     [Tooltip("Adding virtual audio source for stereo stream type will ignore Render Audio Sources.")]
-    public List<VirtualAudioSpeaker> virtualAudioSpeakers;
+    public List<VirtualAudioSpeaker> virtualAudioSpeakers = new List<VirtualAudioSpeaker>();
     [SerializeField] private SimulcastEvent simulcastEvent;
     private SimulcastInfo simulCastInfo;
 
