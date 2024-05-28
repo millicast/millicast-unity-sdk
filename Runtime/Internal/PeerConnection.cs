@@ -6,7 +6,7 @@ using System.Linq;
 using UnityEngine;
 
 using Unity.WebRTC;
-using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Dolby.Millicast
 {
@@ -272,7 +272,7 @@ namespace Dolby.Millicast
       }
     }
 
-    private IEnumerator OnRemoteAnswer(RTCSessionDescription desc)
+    public IEnumerator OnRemoteAnswer(RTCSessionDescription desc)
     {
       Debug.Log($"Remote answer received: {desc.sdp}");
 
@@ -360,36 +360,12 @@ namespace Dolby.Millicast
       OnCoroutineRunRequested?.Invoke(PeerNegotiationNeeded());
     }
 
-    private RTCSessionDescription ParseAnswer(ServiceResponseData payload)
+    public RTCSessionDescription ParseAnswer(JToken payload)
     {
       RTCSessionDescription answer;
       answer.type = RTCSdpType.Answer;
-      answer.sdp = payload.sdp;
+      answer.sdp = payload["sdp"].ToString();
       return answer;
-    }
-
-    /// <summary>
-    /// Establish the peer connection with the peer sitting behind
-    /// Signaling.
-    /// </summary>
-    private void EstablishEvents()
-    {
-      if (OnCoroutineRunRequested == null)
-      {
-        throw new Exception("You must implement the OnCoroutineRunRequested event");
-      }
-
-      // Set the callbacks
-      _signaling.OnEvent += (e, data) =>
-      {
-        switch (e)
-        {
-          case ISignaling.Event.RESPONSE:
-            if(data != null)
-              OnCoroutineRunRequested.Invoke(OnRemoteAnswer(ParseAnswer(data)));
-            break;
-        }
-      };
     }
 
     /// <summary>
@@ -399,8 +375,11 @@ namespace Dolby.Millicast
     /// <param name="configuration"></param>
     public void SetUp(ISignaling signaling, RTCConfiguration configuration, bool addTransceiver = false)
     {
+      if (OnCoroutineRunRequested == null) {
+        throw new Exception("You must implement the OnCoroutineRunRequested event");
+      }
+
       _signaling = signaling;
-      EstablishEvents();
       _pc = new RTCPeerConnection(ref configuration);
       _pc.OnNegotiationNeeded += OnNegotiationNeeded;
       _pc.OnTrack += OnTrackEvent;

@@ -11,59 +11,20 @@ using System.Threading.Tasks;
 
 namespace Dolby.Millicast
 {
-
-
-  /// <summary>
-  /// Holds track information for multisource  
-  /// </summary>
-  internal class TrackInfo
-  {
-    public string trackId { get; set; }
-    public string media { get; set; }
-  }
-
-  /// <summary>
-  /// This holds the possible data the service might return. 
-  /// </summary>
-  internal class ServiceResponseData
-  {
-    public string sdp { get; set; }
-    public int viewercount { get; set; }
-    public string streamId { get; set; }
-    public string sourceId { get; set; }
-    public object medias { get; set; }
-    public List<TrackInfo> tracks;
-  }
-  internal class ServiceResponse
-  {
-
-    public string type { get; set; }
-    public string name { get; set; }
-
-  }
-
-  internal class ErrorServiceResponse : ServiceResponse
-  {
-    public string data { get; set; }
-  }
-  internal class SuccessServiceResponse : ServiceResponse
-  {
-    public ServiceResponseData data { get; set; }
-  }
-
   internal class SignalingImpl : ISignaling
   {
     private readonly static System.Random rnd = new System.Random();
 
     private readonly WebSocket _websocket;
-    private readonly String _url;
-    private readonly String _token;
+    private readonly string _url;
+    private readonly string _token;
+    private readonly Dictionary<string, ServiceResponse> _transactions = new();
 
     public event ISignaling.DelegateOnEvent OnEvent;
     public event ISignaling.DelegateOnOpen OnOpen;
     public event ISignaling.DelegateOnClose OnClose;
     public event ISignaling.DelegateOnError OnError;
-
+    
 
     private ISignaling.Event ConvertToEventEnum(string e)
     {
@@ -75,7 +36,6 @@ namespace Dolby.Millicast
         case "vad": return ISignaling.Event.VAD;
         case "layers": return ISignaling.Event.LAYERS;
         case "stopped": return ISignaling.Event.STOPPED;
-        case "response": return ISignaling.Event.RESPONSE;
 
         default:
           throw new ArgumentException($"Invalid string name {e}");
@@ -110,55 +70,41 @@ namespace Dolby.Millicast
 
         // Forward to specific events
         string json = System.Text.Encoding.UTF8.GetString(bytes);
-        JObject obj = JObject.Parse(json);
-        ServiceResponse response = null;
-        if (obj["data"] is JValue && ((string)obj["type"] == "error"))
+        Debug.Log($"WebSocket Json received: {json}");
+        ServiceResponse response = JObject.Parse(json).ToObject<ServiceResponse>();
+        switch (response.Type)
         {
-          response = JsonConvert.DeserializeObject<ErrorServiceResponse>(json);
-        }
-        else
-        {
-          response = JsonConvert.DeserializeObject<SuccessServiceResponse>(json);
-        }
-        // var dict = JsonConvert.DeserializeObject<ServiceResponse<Dictionary<string, string>>(json);
-
-        switch (response.type)
-        {
-          //TODO: We should separate both
           case "response":
+            HandleResponse(response);
+            break;
           case "event":
-            HandleEvent((SuccessServiceResponse)response);
+            HandleEvent(response);
             break;
           case "error":
-            HandleError((ErrorServiceResponse)response);
+            HandleError(response);
             break;
           default:
-            throw new WebSocketException("Server responded with invalid message type");
+            Debug.LogError($"Server responded with invalid message type {response.Type}");
+            return;
         };
-
       };
 
     }
 
-    private void HandleEvent(SuccessServiceResponse response)
-    {
-
-      switch (response.type)
-      {
-        case "response":
-          OnEvent?.Invoke(ISignaling.Event.RESPONSE, response.data);
-          break;
-        case "event":
-          OnEvent?.Invoke(ConvertToEventEnum(response.name), response.data);
-          break;
-        default:
-          throw new WebSocketException($"Unhandled message type received from server: {response.type}");
+    private void HandleResponse(ServiceResponse responseData) {
+      lock(_transactions) {
+        _transactions.Add(responseData.TransactionId, responseData);
       }
     }
 
-    private void HandleError(ErrorServiceResponse response)
+    private void HandleEvent(ServiceResponse response)
     {
-      OnError?.Invoke(response.data);
+      OnEvent?.Invoke(ConvertToEventEnum(response.Name), response.Data);
+    }
+
+    private void HandleError(ServiceResponse response)
+    {
+      OnError?.Invoke(response.Data.ToString());
     }
 
     private Dictionary<string, object> PreparePayload(string name)
@@ -209,7 +155,7 @@ namespace Dolby.Millicast
       return _websocket?.Close();
     }
 
-    public Task Send(ISignaling.Event e, Dictionary<string, object> data)
+    public Task<JToken> Send(ISignaling.Event e, Dictionary<string, object> data)
     {
 
       if (_websocket?.State != WebSocketState.Open)
@@ -241,7 +187,23 @@ namespace Dolby.Millicast
       }
 
       var jsonString = JsonConvert.SerializeObject(payload);
-      return _websocket.SendText(jsonString);
+      var sendTask = _websocket.SendText(jsonString);
+      return sendTask.ContinueWith((x) => {
+        string transId = payload["transId"].ToString() ?? throw new Exception("No valid transaction ID");
+
+        ServiceResponse response = null;
+        bool hasValue = false;
+        while (!hasValue) {
+          lock(_transactions) {
+            hasValue = _transactions.TryGetValue(transId, out response);
+          }
+        }
+
+        if (response.Type == "error") {
+          throw new Exception(response.Data.ToString());
+        }
+        return response.Data;
+      });
     }
 
     bool ISignaling.IsConnected()
@@ -256,7 +218,7 @@ namespace Dolby.Millicast
 #endif
     }
 
-    public Task Send(ISignaling.Event e)
+    public Task<JToken> Send(ISignaling.Event e)
     {
       return Send(e, null);
     }

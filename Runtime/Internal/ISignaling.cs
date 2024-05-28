@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace Dolby.Millicast
 {
@@ -19,11 +20,6 @@ namespace Dolby.Millicast
       PROJECT,
       UNPROJECT,
       SELECT,
-
-      /// <summary>
-      /// Response events
-      /// </summary>
-      RESPONSE, // In response to a one of the sent events
 
       /// <summary>
       /// Received events
@@ -68,16 +64,16 @@ namespace Dolby.Millicast
     /// <param name="e"> The Event name </param>
     /// <param name="data"> Additional data </param>
     /// <returns> An awaitable task</returns>
-    public Task Send(Event e, Dictionary<string, object> data);
+    public Task<JToken> Send(Event e, Dictionary<string, object> data);
 
     /// <summary>
     /// An overload of Send which does not require data.
     /// </summary>
     /// <param name="e"> The event name </param>
     /// <returns> An awaitable task</returns>
-    public Task Send(Event e);
+    public Task<JToken> Send(Event e);
 
-    delegate void DelegateOnEvent(Event e, ServiceResponseData data);
+    delegate void DelegateOnEvent(Event e, JToken data);
     event DelegateOnEvent OnEvent;
 
     public delegate void DelegateOnOpen();

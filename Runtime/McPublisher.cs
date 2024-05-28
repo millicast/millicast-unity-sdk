@@ -250,7 +250,11 @@ namespace Dolby.Millicast
         payload["sourceId"] = _sourceId;
       }
 
-      yield return _signaling?.Send(ISignaling.Event.PUBLISH, payload);
+      var responseTask =  _signaling?.Send(ISignaling.Event.PUBLISH, payload);
+      yield return new WaitUntil(() => responseTask.IsCompleted);
+      if (!responseTask.IsFaulted) {
+        yield return _pc.OnRemoteAnswer(_pc.ParseAnswer(responseTask.Result));
+      }
     }
 
     private IEnumerator AwaitSignalingMessages()
@@ -278,10 +282,10 @@ namespace Dolby.Millicast
         switch (e)
         {
           case ISignaling.Event.VIEWER_COUNT:
-            OnViewerCount?.Invoke(this, payload.viewercount);
+            OnViewerCount?.Invoke(this, DataContainer.ParseViewerCount(payload));
             break;
           case ISignaling.Event.LAYERS:
-            OnSimulcastlayerInfo?.Invoke(this, DataContainer.ParseSimulcastLayers(payload.medias));
+            OnSimulcastlayerInfo?.Invoke(this, DataContainer.ParseSimulcastLayers(payload));
             break;
         }
       };

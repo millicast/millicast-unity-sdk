@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using UnityEngine;
 using UnityEngine.Events;
 using Newtonsoft.Json;
+using static PlasticPipe.Server.MonitorStats;
 
 namespace Dolby.Millicast
 {
@@ -132,6 +133,8 @@ namespace Dolby.Millicast
     public delegate void DelegateOnConnectionError(McSubscriber subscribe, string message);
     public delegate void DelegateOnLayerEvent(McSubscriber subscribe, SimulcastInfo info);
     public delegate void DelegateOnViewerCount(McSubscriber subscriber, int count);
+    public delegate void DelegateOnActive(McSubscriber subscriber, PublisherActiveEvent e);
+    public delegate void DelegateOnInactive(McSubscriber subscriber, PublisherInctiveEvent e);
 
     /// <summary>
     /// Event called when the publisher is publishing
@@ -145,9 +148,20 @@ namespace Dolby.Millicast
     public event DelegateOnViewerCount OnViewerCount;
 
     /// <summary>
+    /// Event called when a publisher has become active
+    /// </summary>
+    public event DelegateOnActive OnActive;
+
+    /// <summary>
+    /// Event called when a publisher has become inactive
+    /// </summary>
+    public event DelegateOnInactive OnInactive;
+
+    /// <summary>
     /// Event called when the Simulcast Layers data event triggered.
     /// </summary>
     public event DelegateOnLayerEvent OnSimulcastlayerInfo;
+
     /// <summary>
     /// Event called when the there is a connection error to the service.
     /// </summary>
@@ -191,15 +205,19 @@ namespace Dolby.Millicast
       desc.sdp = Regex.Replace(desc.sdp, pattern, "AV1");
 
       Debug.Log("Sending Local offer to peer");
-      var payload = new Dictionary<string, dynamic>();
+      Dictionary<string, dynamic> payload = new() {
+        // TODO: Need to add the following events later: vad, layers
+        // TODO: Need to also add excludedSourceIds and pinnedSourceIds
+        ["streamId"] = streamName,
+        ["sdp"] = desc.sdp,
+        ["events"] = new string[] { "active", "inactive", "stopped", "viewercount", "layers" }
+      };
 
-      // TODO: Need to add the following events later: vad, layers
-      // TODO: Need to also add excludedSourceIds and pinnedSourceIds
-      payload["streamId"] = streamName;
-      payload["sdp"] = desc.sdp;
-      payload["events"] = new string[] { "active", "inactive", "stopped", "viewercount", "layers" };
-
-      yield return _signaling?.Send(ISignaling.Event.SUBSCRIBE, payload);
+      var responseTask = _signaling?.Send(ISignaling.Event.SUBSCRIBE, payload);
+      yield return new WaitUntil(() => responseTask.IsCompleted);
+      if (!responseTask.IsFaulted) {
+        yield return _pc.OnRemoteAnswer(_pc.ParseAnswer(responseTask.Result));
+      }
     }
 
     private IEnumerator AwaitSignalingMessages()
@@ -226,12 +244,12 @@ namespace Dolby.Millicast
         switch (e)
         {
           case ISignaling.Event.VIEWER_COUNT:
-            OnViewerCount?.Invoke(this, payload.viewercount);
+            OnViewerCount?.Invoke(this, DataContainer.ParseViewerCount(payload));
             break;
           case ISignaling.Event.LAYERS:
             try
             {
-              simulCastInfo = DataContainer.ParseSimulcastLayers(payload.medias);
+              simulCastInfo = DataContainer.ParseSimulcastLayers(payload);
               OnSimulcastlayerInfo?.Invoke(this, simulCastInfo);
               simulcastEvent?.Invoke(this, simulCastInfo);
             }
@@ -240,6 +258,22 @@ namespace Dolby.Millicast
               Debug.LogError("Failed to parse the Simulcast layers data: " + exception.Message);
             }
             break;
+          case ISignaling.Event.ACTIVE:
+          {
+              var data = DataContainer.ParsePublisherActiveEvent(payload);
+              Debug.Log($"Received Active event with {data}");
+              OnActive?.Invoke(this, data);
+              break;
+          }
+
+          case ISignaling.Event.INACTIVE:
+          {
+              var data = DataContainer.ParsePublisherInactiveEvent(payload);
+              Debug.Log($"Received Inactive event with {data}");
+              OnInactive?.Invoke(this, data);
+              break;
+          }
+ 
         }
       };
       StartCoroutine(AwaitSignalingMessages());

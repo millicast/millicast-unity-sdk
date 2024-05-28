@@ -1,8 +1,9 @@
-## [v1.2.0](https://github.com/millicast/millicast-unity-sdk/compare/v1.1.0...v1.2.0-alpha.1) (19-Jan-2024)
+## [v1.2.0](https://github.com/millicast/millicast-unity-sdk/compare/v1.1.0...v1.2.0-beta.0) (29-May-2024)
 
 > Description
 
 ### New Features
+* Subscriber now reports events when publishers become active/inactive via {{OnActive}} and {{OnInactive}} delegates.
 * Introduce Frame Transformer API For `McPublisher` & `McSubscriber`. See [FrameMetadataExample.cs](Samples~/Scripts/FrameMetadataExample.cs) for an example script that embeds text metadata into each encoded frame and extracts it when received in the subscriber.
 
 * Simple example to show `WebCamTexture` publishing: [WebCamPublisherExample.cs](Samples~/Scripts/WebCamPublisherExample.cs)
