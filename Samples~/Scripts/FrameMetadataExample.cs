@@ -99,6 +99,10 @@ public class FrameMetadataExample : MonoBehaviour
         _subscriber.SetVideoTransform((TransformableVideoFrameInfo info) => {
           lock(metadataLock) {
             var originalFrameLength = FrameTransformerCoder.DecodeData(info.data, ref metadataOutputArray);
+            if (originalFrameLength < 0) {
+              Debug.Log($"Error attempting to decode metadata");
+              originalFrameLength = info.data.Length;
+            }
             info.SetData(info.data, length: originalFrameLength);
           }
         });
@@ -115,8 +119,12 @@ public class FrameMetadataExample : MonoBehaviour
     _publisher.SetVideoTransform((TransformableVideoFrameInfo info) => {
       lock(metadataLock) {
         if (!metadataInputArray.IsCreated) return;
-        var totalLength = FrameTransformerCoder.EncodeData(info.data, metadataInputArray.ToArray(), ref cache);
-        info.SetData(data: cache.AsReadOnly(), length: totalLength);
+        if (metadataInputArray.Length > 0) {
+          var totalLength = FrameTransformerCoder.EncodeData(info.data, metadataInputArray.ToArray(), ref cache);
+          info.SetData(data: cache.AsReadOnly(), length: totalLength);
+        } else {
+          info.SetData(data: info.data, length: info.data.Length);
+        }
       }
     });
 
